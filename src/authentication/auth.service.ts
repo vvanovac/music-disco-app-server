@@ -10,7 +10,7 @@ export class AuthService {
     username: string;
     password: string;
   }): Promise<any> {
-    return users.filter(
+    return users.find(
       (user) =>
         user.username === payload.username &&
         user.password === payload.password,
@@ -19,7 +19,7 @@ export class AuthService {
 
   async login(username: string, password: string): Promise<any> {
     const user = await this.validateUser({ username, password });
-    if (user.length === 0 || !user) {
+    if (!user) {
       throw new Error('Login Failed');
     }
     const payload = { username: user.username, password: user.password };
