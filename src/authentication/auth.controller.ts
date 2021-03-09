@@ -21,7 +21,7 @@ export class AuthController {
   async register(@Req() req, @Res() res) {
     try {
       const data = await this.authService.register(req.body);
-      return res.status(HttpStatus.OK).json(data);
+      return res.status(HttpStatus.CREATED).json(data);
     } catch (error) {
       return res
         .status(HttpStatus.BAD_REQUEST)
