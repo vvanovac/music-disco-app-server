@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as users from '../data/users.json';
 import { JwtService } from '@nestjs/jwt';
+import IUser from './user.interface';
 
 @Injectable()
 export class AuthService {
@@ -28,16 +29,30 @@ export class AuthService {
     };
   }
 
-  async register(user) {
-    const { username, password } = user;
+  async register(user: IUser) {
+    const { username, password, email } = user;
 
-    if (!username || !password) {
-      throw new Error('Username and/or password missing');
+    if (!username) {
+      throw new Error('Username is missing.');
+    }
+    if (!password) {
+      throw new Error('Password is missing.');
+    }
+    if (!email) {
+      throw new Error('Email is missing.');
+    }
+    if (username.length < 3) {
+      throw new Error('Username must be at least 3 characters long.');
+    }
+    if (password.length < 8) {
+      throw new Error('Password must be at least 8 characters long.');
     }
 
-    const existingUser = users.filter((user) => user.username === username);
+    const existingUser = users.find(
+      (user) => user.username === username || user.email === email,
+    );
 
-    if (existingUser.length !== 0) {
+    if (existingUser) {
       throw new Error('User Already Exists');
     }
 

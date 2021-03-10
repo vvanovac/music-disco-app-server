@@ -48,26 +48,70 @@ describe('Authentication Module', () => {
     it('should fail registration with missing username', () => {
       return request(app.getHttpServer())
         .post('/register')
-        .send({ password: 'password' })
+        .send({ password: 'password', email: 'user1@some.thing' })
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should fail registration with invalid username', () => {
+      return request(app.getHttpServer())
+        .post('/register')
+        .send({
+          username: 'un',
+          password: 'password1',
+          email: 'user1@some.thing',
+        })
         .expect(HttpStatus.BAD_REQUEST);
     });
 
     it('should fail registration with missing password', () => {
       return request(app.getHttpServer())
         .post('/register')
-        .send({ username: 'user' })
+        .send({ username: 'user', email: 'user1@some.thing' })
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should fail registration with invalid password', () => {
+      return request(app.getHttpServer())
+        .post('/register')
+        .send({ username: 'user1', password: 'pw1', email: 'user1@some.thing' })
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should fail registration with missing email', () => {
+      return request(app.getHttpServer())
+        .post('/register')
+        .send({ username: 'user1', password: 'password1' })
         .expect(HttpStatus.BAD_REQUEST);
     });
 
     it('should fail registration with existing username', () => {
       return request(app.getHttpServer())
         .post('/register')
-        .send({ username: 'user1', password: 'password' })
+        .send({
+          username: 'user1',
+          password: 'password',
+          email: 'user@some.thing',
+        })
         .expect(HttpStatus.BAD_REQUEST);
     });
 
-    it('should successfully register with valid username and password', () => {
-      const user = { username: 'user', password: 'password' };
+    it('should fail registration with existing email', () => {
+      return request(app.getHttpServer())
+        .post('/register')
+        .send({
+          username: 'user',
+          password: 'password',
+          email: 'user1@some.thing',
+        })
+        .expect(HttpStatus.BAD_REQUEST);
+    });
+
+    it('should successfully register with valid username, password and email', () => {
+      const user = {
+        username: 'user',
+        password: 'password',
+        email: 'user@some.thing',
+      };
       return request(app.getHttpServer())
         .post('/register')
         .send(user)
