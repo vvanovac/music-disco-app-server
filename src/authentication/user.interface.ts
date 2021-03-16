@@ -1,5 +1,6 @@
-export default class IUser {
+export default interface IUser {
   username: string;
   password: string;
   email: string;
+  isAdmin: boolean;
 }

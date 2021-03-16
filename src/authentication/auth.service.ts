@@ -21,7 +21,7 @@ export class AuthService {
   async login(username: string, password: string): Promise<any> {
     const user = await this.validateUser({ username, password });
     if (!user) {
-      throw new Error('Login Failed');
+      throw new Error('Invalid username and/or password.');
     }
     const payload = { username: user.username, password: user.password };
     return {
@@ -53,10 +53,10 @@ export class AuthService {
     );
 
     if (existingUser) {
-      throw new Error('User Already Exists');
+      throw new Error('User already exists.');
     }
 
-    users.push(user);
+    users.push({ ...user, isAdmin: false });
 
     return user;
   }
