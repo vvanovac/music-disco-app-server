@@ -2,15 +2,16 @@ import {
   Body,
   Param,
   Controller,
-  Delete,
   HttpStatus,
   Post,
+  Get,
   Put,
+  Delete,
   Res,
 } from '@nestjs/common';
 import TasksService from './tasks.service';
-import CreateTaskDto from './create-task.dto';
-import UpdateTaskDto from './update-task.dto';
+import { CreateTaskDto, UpdateTaskDto } from './task.dto';
+import ITask from './task.interface';
 
 @Controller('tasks')
 export default class TasksController {
@@ -20,7 +21,7 @@ export default class TasksController {
   async create(
     @Body() createTaskDto: CreateTaskDto,
     @Res() res,
-  ): Promise<CreateTaskDto> {
+  ): Promise<ITask> {
     try {
       const task = await this.tasksService.createTask(createTaskDto);
       return res.status(HttpStatus.CREATED).json(task);
@@ -31,14 +32,38 @@ export default class TasksController {
     }
   }
 
+  @Get()
+  async find(@Res() res): Promise<ITask[]> {
+    try {
+      const tasks = await this.tasksService.findTasks();
+      return res.status(HttpStatus.OK).json(tasks);
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: error.message });
+    }
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id, @Res() res): Promise<ITask> {
+    try {
+      const task = await this.tasksService.findTask(id);
+      return res.status(HttpStatus.OK).json(task);
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: error.message });
+    }
+  }
+
   @Put(':id')
   async update(
-    @Param() params,
+    @Param('id') id,
     @Body() updateTaskDto: UpdateTaskDto,
     @Res() res,
-  ): Promise<CreateTaskDto> {
+  ): Promise<ITask> {
     try {
-      const task = await this.tasksService.updateTask(params.id, updateTaskDto);
+      const task = await this.tasksService.updateTask(id, updateTaskDto);
       return res.status(HttpStatus.OK).json(task);
     } catch (error) {
       return res
@@ -48,9 +73,9 @@ export default class TasksController {
   }
 
   @Delete(':id')
-  async delete(@Param() params, @Res() res): Promise<CreateTaskDto> {
+  async delete(@Param('id') id, @Res() res): Promise<ITask> {
     try {
-      const task = await this.tasksService.deleteTask(params.id);
+      const task = await this.tasksService.deleteTask(id);
       return res.status(HttpStatus.OK).json(task);
     } catch (error) {
       return res

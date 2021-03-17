@@ -14,6 +14,6 @@ export default class Tasks {
   @Column({ type: 'varchar' })
   description: string;
 
-  @Column({ type: 'varchar' })
-  descriptionImage: string;
+  @Column({ type: 'varchar', nullable: true })
+  imageURL: string;
 }
