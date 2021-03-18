@@ -23,7 +23,7 @@ export default class TasksService {
   }
 
   async findTask(id: number): Promise<ITask> {
-    return await this.tasksRepository.findOne(id);
+    return (await this.tasksRepository.findOne(id)) || null;
   }
 
   async updateTask(id: number, task: UpdateTaskDto): Promise<UpdateTaskDto> {
