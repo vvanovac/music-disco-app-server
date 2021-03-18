@@ -12,10 +12,10 @@ export default class TasksService {
     private tasksRepository: Repository<Tasks>,
   ) {}
 
-  async createTask(task: CreateTaskDto): Promise<CreateTaskDto> {
-    await this.tasksRepository.insert(task);
+  async createTask(task: CreateTaskDto): Promise<ITask> {
+    const inserted = await this.tasksRepository.insert(task);
 
-    return task;
+    return this.findTask(inserted.raw[0].id);
   }
 
   async findTasks(): Promise<ITask[]> {
@@ -26,7 +26,7 @@ export default class TasksService {
     return (await this.tasksRepository.findOne(id)) || null;
   }
 
-  async updateTask(id: number, task: UpdateTaskDto): Promise<UpdateTaskDto> {
+  async updateTask(id: number, task: UpdateTaskDto): Promise<ITask> {
     const target = await this.findTask(id);
 
     if (!target) {
@@ -35,7 +35,7 @@ export default class TasksService {
 
     await this.tasksRepository.update({ id }, { ...task });
 
-    return task;
+    return this.findTask(id);
   }
 
   async deleteTask(id: number): Promise<ITask> {

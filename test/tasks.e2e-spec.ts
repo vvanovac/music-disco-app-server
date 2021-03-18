@@ -5,6 +5,29 @@ import * as request from 'supertest';
 
 import { AppModule } from '../src/app.module';
 import Tasks from '../src/tasks/tasks.entity';
+import ITask from '../src/tasks/task.interface';
+
+const dataToCompare = (expected, recieved) => {
+  expect(expected.title).toStrictEqual(recieved.title);
+  expect(expected.subtitle).toStrictEqual(recieved.subtitle);
+  expect(expected.description).toStrictEqual(recieved.description);
+  expect(expected.imageURL).toStrictEqual(recieved.imageURL);
+};
+
+const dataInjected = [
+  {
+    title: 'test 1',
+    subtitle: 'test 1',
+    description: 'test 1',
+    image: 'image-url.test',
+  },
+  {
+    title: 'test 2',
+    subtitle: 'test 2',
+    description: 'test 2',
+    image: 'image-url.test',
+  },
+];
 
 describe('Tasks Module', () => {
   let app: INestApplication;
@@ -19,20 +42,7 @@ describe('Tasks Module', () => {
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
     repository = moduleFixture.get('TasksRepository');
-    await repository.save([
-      {
-        title: 'test 1',
-        subtitle: 'test 1',
-        description: 'test 1',
-        image: 'image-url.test',
-      },
-      {
-        title: 'test 2',
-        subtitle: 'test 2',
-        description: 'test 2',
-        image: 'image-url.test',
-      },
-    ]);
+    await repository.save(dataInjected);
   });
 
   afterEach(async () => {
@@ -130,40 +140,54 @@ describe('Tasks Module', () => {
         });
     });
 
-    it('should successfully create task with mandatory fields', () => {
-      return request(app.getHttpServer())
+    it('should successfully create task with mandatory fields', async () => {
+      const create: ITask = {
+        title: 'task 1',
+        subtitle: 'task 1',
+        description: 'task 1',
+      };
+      const { body } = await request(app.getHttpServer())
         .post('/tasks')
-        .send({
-          title: 'task 1',
-          subtitle: 'task 1',
-          description: 'task 1',
-        })
-        .expect(HttpStatus.CREATED)
-        .then(({ body }) => {
-          repository.findOne(body.id);
-          expect(body.title).toStrictEqual('task 1');
-          expect(body.subtitle).toStrictEqual('task 1');
-          expect(body.description).toStrictEqual('task 1');
-        });
+        .send(create)
+        .expect(HttpStatus.CREATED);
+      create.imageURL = null;
+      const task = await repository.findOne(body.id);
+      dataToCompare(create, task);
+      dataToCompare(body, create);
     });
 
-    it('should successfully create task with mandatory and optional fields', () => {
-      return request(app.getHttpServer())
+    it('should successfully create task with mandatory and optional fields', async () => {
+      const create = {
+        title: 'task 1',
+        subtitle: 'task 1',
+        description: 'task 1',
+        imageURL: 'image-url.test',
+      };
+      const { body } = await request(app.getHttpServer())
         .post('/tasks')
-        .send({
-          title: 'task 1',
-          subtitle: 'task 1',
-          description: 'task 1',
-          imageURL: 'image-url.test',
-        })
-        .expect(HttpStatus.CREATED)
-        .then(({ body }) => {
-          repository.findOne(body.id);
-          expect(body.title).toStrictEqual('task 1');
-          expect(body.subtitle).toStrictEqual('task 1');
-          expect(body.description).toStrictEqual('task 1');
-          expect(body.imageURL).toStrictEqual('image-url.test');
-        });
+        .send(create)
+        .expect(HttpStatus.CREATED);
+
+      const task = await repository.findOne(body.id);
+      dataToCompare(create, task);
+      dataToCompare(body, create);
+    });
+
+    it('should successfully create task with mandatory and optional fields', async () => {
+      const create = {
+        title: 'task 1',
+        subtitle: 'task 1',
+        description: 'task 1',
+        imageURL: null,
+      };
+      const { body } = await request(app.getHttpServer())
+        .post('/tasks')
+        .send(create)
+        .expect(HttpStatus.CREATED);
+
+      const task = await repository.findOne(body.id);
+      dataToCompare(create, task);
+      dataToCompare(body, create);
     });
   });
 
@@ -177,17 +201,25 @@ describe('Tasks Module', () => {
         });
     });
 
-    it('should successfully get all tasks', () => {
-      return request(app.getHttpServer())
+    it('should successfully get all tasks', async () => {
+      const { body } = await request(app.getHttpServer())
         .get('/tasks')
-        .expect(HttpStatus.OK)
-        .then((data) => {
-          expect(data.body).toBeDefined();
-        });
+        .expect(HttpStatus.OK);
+
+      expect(body.length).toStrictEqual(dataInjected.length);
+      body.forEach((bodyData, index) =>
+        dataToCompare(bodyData, dataInjected[index]),
+      );
     });
 
-    it('should successfully get one task', () => {
-      return request(app.getHttpServer()).get('/tasks/1').expect(HttpStatus.OK);
+    it('should successfully get one task', async () => {
+      const [databaseValue] = await repository.find({ take: 1 });
+      const { body } = await request(app.getHttpServer())
+        .get(`/tasks/${databaseValue.id}`)
+        .expect(HttpStatus.OK);
+
+      dataToCompare(body, databaseValue);
+      expect(body.id).toStrictEqual(databaseValue.id);
     });
   });
 
@@ -247,40 +279,91 @@ describe('Tasks Module', () => {
         });
     });
 
-    it('should successfully update task with valid type of title', () => {
-      const update = { title: 'task 1' };
-      return request(app.getHttpServer())
-        .put('/tasks/1')
+    it('should successfully update task with valid type of title', async () => {
+      const update = { title: 'new task 1.1' };
+      const [databaseValue] = await repository.find({ take: 1 });
+      const { body } = await request(app.getHttpServer())
+        .put(`/tasks/${databaseValue.id}`)
         .send(update)
-        .expect(HttpStatus.OK)
-        .expect(update);
+        .expect(HttpStatus.OK);
+      const newDatabaseValue = await repository.findOne(databaseValue.id);
+      dataToCompare(body, newDatabaseValue);
+      dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
     });
 
-    it('should successfully update task with valid type of subtitle', () => {
-      const update = { subtitle: 'task 1' };
-      return request(app.getHttpServer())
-        .put('/tasks/1')
+    it('should successfully update task with valid type of subtitle', async () => {
+      const update = {
+        title: 'new task 1.1',
+        subtitle: 'new task 1.2',
+      };
+      const [databaseValue] = await repository.find({ take: 1 });
+      const { body } = await request(app.getHttpServer())
+        .put(`/tasks/${databaseValue.id}`)
         .send(update)
-        .expect(HttpStatus.OK)
-        .expect(update);
+        .expect(HttpStatus.OK);
+      const newDatabaseValue = await repository.findOne(databaseValue.id);
+      dataToCompare(body, newDatabaseValue);
+      dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
     });
 
-    it('should successfully update task with valid type of description', () => {
-      const update = { description: 'task 1' };
-      return request(app.getHttpServer())
-        .put('/tasks/1')
+    it('should successfully update task with valid type of description', async () => {
+      const update = {
+        description: 'new task 1.3',
+        subtitle: 'new task 1.3',
+      };
+      const [databaseValue] = await repository.find({ take: 1 });
+      const { body } = await request(app.getHttpServer())
+        .put(`/tasks/${databaseValue.id}`)
         .send(update)
-        .expect(HttpStatus.OK)
-        .expect(update);
+        .expect(HttpStatus.OK);
+      const newDatabaseValue = await repository.findOne(databaseValue.id);
+      dataToCompare(body, newDatabaseValue);
+      dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
     });
 
-    it('should successfully update task with valid type of imageURL', () => {
-      const update = { imageURL: 'image-url.test' };
-      return request(app.getHttpServer())
-        .put('/tasks/1')
+    it('should successfully set imageURL from string to null', async () => {
+      const update = { imageURL: null };
+      const [databaseValue] = await repository.find({ take: 1 });
+      await repository.update(
+        { id: databaseValue.id },
+        { imageURL: 'image-url.test' },
+      );
+      databaseValue.imageURL = 'image-url.test';
+      const { body } = await request(app.getHttpServer())
+        .put(`/tasks/${databaseValue.id}`)
         .send(update)
-        .expect(HttpStatus.OK)
-        .expect(update);
+        .expect(HttpStatus.OK);
+      const newDatabaseValue = await repository.findOne(databaseValue.id);
+      dataToCompare(body, newDatabaseValue);
+      dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
+    });
+
+    it('should successfully set imageURL from null to null', async () => {
+      const update = { imageURL: null };
+      const [databaseValue] = await repository.find({ take: 1 });
+      await repository.update({ id: databaseValue.id }, { imageURL: null });
+      databaseValue.imageURL = null;
+      const { body } = await request(app.getHttpServer())
+        .put(`/tasks/${databaseValue.id}`)
+        .send(update)
+        .expect(HttpStatus.OK);
+      const newDatabaseValue = await repository.findOne(databaseValue.id);
+      dataToCompare(body, newDatabaseValue);
+      dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
+    });
+
+    it('should successfully update task with valid type of imageURL', async () => {
+      const update = {
+        imageURL: 'new-image-url.test',
+      };
+      const [databaseValue] = await repository.find({ take: 1 });
+      const { body } = await request(app.getHttpServer())
+        .put(`/tasks/${databaseValue.id}`)
+        .send(update)
+        .expect(HttpStatus.OK);
+      const newDatabaseValue = await repository.findOne(databaseValue.id);
+      dataToCompare(body, newDatabaseValue);
+      dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
     });
   });
 

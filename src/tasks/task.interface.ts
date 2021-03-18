@@ -1,7 +1,7 @@
 export default interface ITask {
-  id: number;
+  id?: number;
   title: string;
   subtitle: string;
   description: string;
-  imageURL: string;
+  imageURL?: string;
 }
