@@ -5,7 +5,7 @@ import IUser from './user.interface';
 import { LoginDto } from './auth.dto';
 
 @Injectable()
-export class AuthService {
+export default class AuthService {
   constructor(private jwtService: JwtService) {}
 
   async validateUser(payload: {
@@ -43,6 +43,6 @@ export class AuthService {
 
     users.push({ isAdmin: false, ...user });
 
-    return user;
+    return users.find((newUser) => newUser.username === user.username);
   }
 }

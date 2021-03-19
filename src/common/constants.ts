@@ -13,4 +13,8 @@ export default {
     dbname: process.env.DB_NAME || 'postgres',
     schema: pgSchema,
   } as TypeOrmModuleOptions,
+  jwt: {
+    secret: process.env.JWT_SECRET || 'strongSecretKey',
+    expiresIn: process.env.JWT_EXPIRES_IN || '60h',
+  },
 };

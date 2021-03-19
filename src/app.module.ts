@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AuthModule } from './authentication/auth.module';
+import AuthModule from './authentication/auth.module';
 import constants from './common/constants';
 
 @Module({

@@ -1,8 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus, ValidationPipe } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import * as request from 'supertest';
 
 import { AppModule } from '../src/app.module';
+import constants from '../src/common/constants';
 
 describe('Authentication Module', () => {
   let app: INestApplication;
@@ -102,15 +104,25 @@ describe('Authentication Module', () => {
         });
     });
 
-    it('should successfully login with valid username and password', () => {
-      return request(app.getHttpServer())
+    it('should successfully login with valid username and password', async () => {
+      const user = { username: 'user1', password: 'password1' };
+      const { body } = await request(app.getHttpServer())
         .post('/login')
-        .send({ username: 'user1', password: 'password1' })
-        .expect(HttpStatus.OK)
-        .then((data) => {
-          expect(data.body.accessToken).toBeDefined();
-          expect(Object.keys(data.body)).toStrictEqual(['accessToken']);
-        });
+        .send(user)
+        .expect(HttpStatus.OK);
+      expect(body.accessToken).toBeDefined();
+      expect(Object.keys(body)).toStrictEqual(['accessToken']);
+      const decoded = new JwtService({ secret: constants.jwt.secret }).verify(
+        body.accessToken,
+      );
+      expect(decoded.username).toStrictEqual(user.username);
+      const expectedKeys = ['username', 'id', 'iat', 'exp'];
+      const receivedKeys = Object.keys(decoded);
+      expect(
+        expectedKeys.every((element) => receivedKeys.includes(element)),
+      ).toStrictEqual(true);
+      expect(expectedKeys.length).toStrictEqual(receivedKeys.length);
+      expect(decoded.id).toBeDefined();
     });
   });
 
@@ -298,7 +310,7 @@ describe('Authentication Module', () => {
         .post('/register')
         .send(user)
         .expect(HttpStatus.CREATED)
-        .expect(user);
+        .expect({ isAdmin: false, ...user });
     });
 
     it('should successfully register with mandatory and optional fields', () => {
@@ -313,6 +325,29 @@ describe('Authentication Module', () => {
         .send(user)
         .expect(HttpStatus.CREATED)
         .expect(user);
+    });
+
+    it('should be able to login after successfully registering', () => {
+      return request(app.getHttpServer())
+        .post('/login')
+        .send({
+          username: 'newUser',
+          password: 'password',
+        })
+        .expect(HttpStatus.OK);
+    });
+
+    it('should fail to register with same username twice', () => {
+      const user = {
+        username: 'newUser',
+        password: 'password',
+        email: 'newUser@some.thing',
+        isAdmin: false,
+      };
+      return request(app.getHttpServer())
+        .post('/register')
+        .send(user)
+        .expect(HttpStatus.BAD_REQUEST);
     });
   });
 });
