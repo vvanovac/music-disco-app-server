@@ -1,6 +1,6 @@
 export default interface IUser {
-  username: string;
-  password: string;
-  email: string;
-  isAdmin: boolean;
+  readonly username: string;
+  readonly password: string;
+  readonly email: string;
+  readonly isAdmin?: boolean;
 }

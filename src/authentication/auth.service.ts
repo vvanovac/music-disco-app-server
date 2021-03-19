@@ -30,33 +30,16 @@ export class AuthService {
   }
 
   async register(user: IUser) {
-    const { username, password, email } = user;
-
-    if (!username) {
-      throw new Error('Username is missing.');
-    }
-    if (!password) {
-      throw new Error('Password is missing.');
-    }
-    if (!email) {
-      throw new Error('Email is missing.');
-    }
-    if (username.length < 3) {
-      throw new Error('Username must be at least 3 characters long.');
-    }
-    if (password.length < 8) {
-      throw new Error('Password must be at least 8 characters long.');
-    }
+    const { username, email } = user;
 
     const existingUser = users.find(
       (user) => user.username === username || user.email === email,
     );
-
     if (existingUser) {
       throw new Error('User already exists.');
     }
 
-    users.push({ ...user, isAdmin: false });
+    users.push({ isAdmin: false, ...user });
 
     return user;
   }

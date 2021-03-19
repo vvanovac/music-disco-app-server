@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, HttpStatus } from '@nestjs/common';
+import { INestApplication, HttpStatus, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
+
 import { AppModule } from '../src/app.module';
 
 describe('Authentication Module', () => {
@@ -12,6 +13,7 @@ describe('Authentication Module', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(new ValidationPipe());
     await app.init();
   });
 
@@ -20,16 +22,30 @@ describe('Authentication Module', () => {
       return request(app.getHttpServer())
         .post('/login')
         .send({ password: 'password1' })
-        .expect(HttpStatus.UNAUTHORIZED)
-        .expect({ message: 'Login Failed' });
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: [
+            'username must be longer than or equal to 3 characters',
+            'username must be a string',
+          ],
+          error: 'Bad Request',
+        });
     });
 
     it('should fail login for missing password', () => {
       return request(app.getHttpServer())
         .post('/login')
         .send({ username: 'user1' })
-        .expect(HttpStatus.UNAUTHORIZED)
-        .expect({ message: 'Login Failed' });
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: [
+            'password must be longer than or equal to 8 characters',
+            'password must be a string',
+          ],
+          error: 'Bad Request',
+        });
     });
 
     it('should successfully login with valid username and password', () => {
