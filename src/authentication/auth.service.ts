@@ -23,8 +23,7 @@ export default class AuthService {
     username: string;
     password: string;
   }): Promise<any> {
-    const user = await this.findByUsername(payload);
-
+    const user = await this.findUser({ username: payload.username }, true);
     if (user) {
       const { hash, salt, ...result } = user;
       const validPassword = await comparePasswords(
@@ -46,7 +45,7 @@ export default class AuthService {
     if (!validUser) {
       throw new Error('Invalid username and/or password.');
     }
-    const userId = await this.findByUsername(user);
+    const userId = await this.findUser({ username: username });
     const payload = { id: userId.id, username: username, password: password };
     return {
       accessToken: this.jwtService.sign(payload),
@@ -56,12 +55,12 @@ export default class AuthService {
   async register(user) {
     const { password, ...rest } = user;
 
-    const targetUsername = await this.findByUsername(rest);
+    const targetUsername = await this.findUser({ username: rest.username });
     if (targetUsername) {
       throw new Error('User already exists.');
     }
 
-    const targetEmail = await this.findByEmail(rest);
+    const targetEmail = await this.findUser({ email: rest.email });
     if (targetEmail) {
       throw new Error('User already exists.');
     }
@@ -73,17 +72,16 @@ export default class AuthService {
     const result = await hashPassword(password);
     await this.usersRepository.insert({ isAdmin: false, ...rest, ...result });
 
-    const newUser = await this.findByUsername(rest);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { hash, salt, ...newRest } = newUser;
-    return newRest;
+    return await this.findUser(rest);
   }
 
-  async findByUsername(user: any): Promise<any> {
-    return await this.usersRepository.findOne({ username: user.username });
-  }
-
-  async findByEmail(user: any): Promise<any> {
-    return await this.usersRepository.findOne({ email: user.email });
+  async findUser(user: any, addHashSalt?): Promise<any> {
+    return await this.usersRepository.findOne(user, {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      select: ['id', 'username', 'email', 'isAdmin'].concat(
+        addHashSalt ? ['hash', 'salt'] : [],
+      ),
+    });
   }
 }

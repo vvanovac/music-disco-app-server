@@ -7,6 +7,15 @@ import * as request from 'supertest';
 import { AppModule } from '../src/app.module';
 import Users from '../src/authentication/users.entity';
 import constants from '../src/common/constants';
+import { hashPassword } from '../src/common/cryptography';
+
+const dataInjected = [
+  {
+    username: 'test-user0',
+    password: 'test-password0',
+    email: 'test-user0@some.thing',
+  },
+];
 
 describe('Authentication Module', () => {
   let app: INestApplication;
@@ -21,11 +30,13 @@ describe('Authentication Module', () => {
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
     repository = moduleFixture.get('UsersRepository');
-    await request(app.getHttpServer()).post('/register').send({
-      username: 'test-user0',
-      password: 'test-password0',
-      email: 'test-user0@some.thing',
-    });
+    const remapped = await Promise.all(
+      dataInjected.map(async ({ password, ...rest }) => {
+        const result = await hashPassword(password);
+        return { ...rest, ...result };
+      }),
+    );
+    await repository.save(remapped);
   });
 
   afterEach(async () => {
@@ -256,16 +267,16 @@ describe('Authentication Module', () => {
       await request(app.getHttpServer())
         .post('/register')
         .send({
-          username: 'test-user2',
-          password: 'test-password2',
-          email: 'test-user2@some.thing',
+          username: 'test-user',
+          password: 'test-password0',
+          email: 'test-user@some.thing',
         })
         .expect(HttpStatus.CREATED);
       return request(app.getHttpServer())
         .post('/login')
         .send({
-          username: 'test-user2',
-          password: 'test-password2',
+          username: 'test-user',
+          password: 'test-password0',
         })
         .expect(HttpStatus.OK);
     });
