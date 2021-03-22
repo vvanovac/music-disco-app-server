@@ -1,13 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, HttpStatus, ValidationPipe } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Repository } from 'typeorm';
 import * as request from 'supertest';
 
 import { AppModule } from '../src/app.module';
+import Users from '../src/authentication/users.entity';
 import constants from '../src/common/constants';
 
 describe('Authentication Module', () => {
   let app: INestApplication;
+  let repository: Repository<Users>;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -17,120 +20,24 @@ describe('Authentication Module', () => {
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
+    repository = moduleFixture.get('UsersRepository');
+    await request(app.getHttpServer()).post('/register').send({
+      username: 'test-user0',
+      password: 'test-password0',
+      email: 'test-user0@some.thing',
+    });
   });
 
-  describe('While testing login flows', () => {
-    it('should fail login for missing username', () => {
-      return request(app.getHttpServer())
-        .post('/login')
-        .send({ password: 'password1' })
-        .expect(HttpStatus.BAD_REQUEST)
-        .expect({
-          statusCode: 400,
-          message: [
-            'username must be longer than or equal to 3 characters',
-            'username must be a string',
-          ],
-          error: 'Bad Request',
-        });
-    });
-
-    it('should fail login for invalid type of username', () => {
-      return request(app.getHttpServer())
-        .post('/login')
-        .send({ username: 1, password: 'password1' })
-        .expect(HttpStatus.BAD_REQUEST)
-        .expect({
-          statusCode: 400,
-          message: [
-            'username must be longer than or equal to 3 characters',
-            'username must be a string',
-          ],
-          error: 'Bad Request',
-        });
-    });
-
-    it('should fail login for too short username', () => {
-      return request(app.getHttpServer())
-        .post('/login')
-        .send({ username: 'un', password: 'password1' })
-        .expect(HttpStatus.BAD_REQUEST)
-        .expect({
-          statusCode: 400,
-          message: ['username must be longer than or equal to 3 characters'],
-          error: 'Bad Request',
-        });
-    });
-
-    it('should fail login for missing password', () => {
-      return request(app.getHttpServer())
-        .post('/login')
-        .send({ username: 'user1' })
-        .expect(HttpStatus.BAD_REQUEST)
-        .expect({
-          statusCode: 400,
-          message: [
-            'password must be longer than or equal to 8 characters',
-            'password must be a string',
-          ],
-          error: 'Bad Request',
-        });
-    });
-
-    it('should fail login for invalid type of password', () => {
-      return request(app.getHttpServer())
-        .post('/login')
-        .send({ username: 'user1', password: 1 })
-        .expect(HttpStatus.BAD_REQUEST)
-        .expect({
-          statusCode: 400,
-          message: [
-            'password must be longer than or equal to 8 characters',
-            'password must be a string',
-          ],
-          error: 'Bad Request',
-        });
-    });
-
-    it('should fail login for too short password', () => {
-      return request(app.getHttpServer())
-        .post('/login')
-        .send({ username: 'user1', password: 'pw' })
-        .expect(HttpStatus.BAD_REQUEST)
-        .expect({
-          statusCode: 400,
-          message: ['password must be longer than or equal to 8 characters'],
-          error: 'Bad Request',
-        });
-    });
-
-    it('should successfully login with valid username and password', async () => {
-      const user = { username: 'user1', password: 'password1' };
-      const { body } = await request(app.getHttpServer())
-        .post('/login')
-        .send(user)
-        .expect(HttpStatus.OK);
-      expect(body.accessToken).toBeDefined();
-      expect(Object.keys(body)).toStrictEqual(['accessToken']);
-      const decoded = new JwtService({ secret: constants.jwt.secret }).verify(
-        body.accessToken,
-      );
-      expect(decoded.username).toStrictEqual(user.username);
-      const expectedKeys = ['username', 'id', 'iat', 'exp'];
-      const receivedKeys = Object.keys(decoded);
-      expect(
-        expectedKeys.every((element) => receivedKeys.includes(element)),
-      ).toStrictEqual(true);
-      expect(expectedKeys.length).toStrictEqual(receivedKeys.length);
-      expect(decoded.id).toBeDefined();
-    });
+  afterEach(async () => {
+    await repository.query(`TRUNCATE users RESTART IDENTITY;`);
+    await app.close();
   });
 
   describe('While testing register flows', () => {
     it('should fail registration with missing username', () => {
       return request(app.getHttpServer())
         .post('/register')
-        .send({ password: 'password', email: 'user1@some.thing' })
+        .send({ password: 'test-password1', email: 'test-user1@some.thing' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
@@ -147,8 +54,8 @@ describe('Authentication Module', () => {
         .post('/register')
         .send({
           username: 1,
-          password: 'password1',
-          email: 'user1@some.thing',
+          password: 'test-password1',
+          email: 'test-user1@some.thing',
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -166,8 +73,8 @@ describe('Authentication Module', () => {
         .post('/register')
         .send({
           username: 'un',
-          password: 'password1',
-          email: 'user1@some.thing',
+          password: 'test-password1',
+          email: 'test-user1@some.thing',
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -180,7 +87,7 @@ describe('Authentication Module', () => {
     it('should fail registration with missing password', () => {
       return request(app.getHttpServer())
         .post('/register')
-        .send({ username: 'user', email: 'user1@some.thing' })
+        .send({ username: 'test-user1', email: 'test-user1@some.thing' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
@@ -195,7 +102,11 @@ describe('Authentication Module', () => {
     it('should fail registration with invalid type of password', () => {
       return request(app.getHttpServer())
         .post('/register')
-        .send({ username: 'user1', password: 1, email: 'user1@some.thing' })
+        .send({
+          username: 'test-user1',
+          password: 1,
+          email: 'test-user1@some.thing',
+        })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
@@ -210,7 +121,11 @@ describe('Authentication Module', () => {
     it('should fail registration with too short password', () => {
       return request(app.getHttpServer())
         .post('/register')
-        .send({ username: 'user1', password: 'pw', email: 'user1@some.thing' })
+        .send({
+          username: 'test-user1',
+          password: 'pw',
+          email: 'test-user1@some.thing',
+        })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
@@ -222,7 +137,7 @@ describe('Authentication Module', () => {
     it('should fail registration with missing email', () => {
       return request(app.getHttpServer())
         .post('/register')
-        .send({ username: 'user1', password: 'password1' })
+        .send({ username: 'test-user1', password: 'test-password1' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
@@ -234,7 +149,7 @@ describe('Authentication Module', () => {
     it('should fail registration with invalid type of email', () => {
       return request(app.getHttpServer())
         .post('/register')
-        .send({ username: 'user1', password: 'password1', email: 1 })
+        .send({ username: 'test-user1', password: 'test-password1', email: 1 })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
@@ -247,9 +162,9 @@ describe('Authentication Module', () => {
       return request(app.getHttpServer())
         .post('/register')
         .send({
-          username: 'user1',
-          password: 'password1',
-          email: 'user1some.thing',
+          username: 'test-user1',
+          password: 'test-password1',
+          email: 'test-user.some.thing',
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -263,9 +178,9 @@ describe('Authentication Module', () => {
       return request(app.getHttpServer())
         .post('/register')
         .send({
-          username: 'user1',
-          password: 'password',
-          email: 'user@some.thing',
+          username: 'test-user0',
+          password: 'test-password2',
+          email: 'test-user2@some.thing',
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({ message: 'User already exists.' });
@@ -275,9 +190,9 @@ describe('Authentication Module', () => {
       return request(app.getHttpServer())
         .post('/register')
         .send({
-          username: 'user',
-          password: 'password',
-          email: 'user1@some.thing',
+          username: 'test-user2',
+          password: 'test-password2',
+          email: 'test-user0@some.thing',
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({ message: 'User already exists.' });
@@ -287,9 +202,9 @@ describe('Authentication Module', () => {
       return request(app.getHttpServer())
         .post('/register')
         .send({
-          username: 'user',
-          password: 'password',
-          email: 'user1@some.thing',
+          username: 'test-user2',
+          password: 'test-password2',
+          email: 'test-user2@some.thing',
           isAdmin: 'admin',
         })
         .expect(HttpStatus.BAD_REQUEST)
@@ -300,54 +215,190 @@ describe('Authentication Module', () => {
         });
     });
 
-    it('should successfully register with mandatory fields', () => {
+    it('should successfully register with mandatory fields', async () => {
       const user = {
-        username: 'user',
-        password: 'password',
-        email: 'user@some.thing',
+        username: 'test-user2',
+        password: 'test-password2',
+        email: 'test-user2@some.thing',
       };
-      return request(app.getHttpServer())
+      const { body } = await request(app.getHttpServer())
         .post('/register')
         .send(user)
-        .expect(HttpStatus.CREATED)
-        .expect({ isAdmin: false, ...user });
+        .expect(HttpStatus.CREATED);
+      const expectedKeys = ['id', 'username', 'email', 'isAdmin'];
+      const receivedKeys = Object.keys(body);
+      expect(
+        expectedKeys.every((element) => receivedKeys.includes(element)),
+      ).toStrictEqual(true);
+      expect(expectedKeys.length).toStrictEqual(receivedKeys.length);
     });
 
-    it('should successfully register with mandatory and optional fields', () => {
+    it('should successfully register with mandatory and optional fields', async () => {
       const user = {
-        username: 'newUser',
-        password: 'password',
-        email: 'newUser@some.thing',
+        username: 'test-user2',
+        password: 'test-password2',
+        email: 'test-user2@some.thing',
         isAdmin: false,
       };
-      return request(app.getHttpServer())
+      const { body } = await request(app.getHttpServer())
         .post('/register')
         .send(user)
-        .expect(HttpStatus.CREATED)
-        .expect(user);
+        .expect(HttpStatus.CREATED);
+      const expectedKeys = ['id', 'username', 'email', 'isAdmin'];
+      const receivedKeys = Object.keys(body);
+      expect(
+        expectedKeys.every((element) => receivedKeys.includes(element)),
+      ).toStrictEqual(true);
+      expect(expectedKeys.length).toStrictEqual(receivedKeys.length);
     });
 
-    it('should be able to login after successfully registering', () => {
+    it('should be able to login after successfully registering', async () => {
+      await request(app.getHttpServer())
+        .post('/register')
+        .send({
+          username: 'test-user2',
+          password: 'test-password2',
+          email: 'test-user2@some.thing',
+        })
+        .expect(HttpStatus.CREATED);
       return request(app.getHttpServer())
         .post('/login')
         .send({
-          username: 'newUser',
-          password: 'password',
+          username: 'test-user2',
+          password: 'test-password2',
         })
         .expect(HttpStatus.OK);
     });
 
-    it('should fail to register with same username twice', () => {
+    it('should fail to register with same username twice', async () => {
       const user = {
-        username: 'newUser',
-        password: 'password',
-        email: 'newUser@some.thing',
+        username: 'test-user2',
+        password: 'test-password2',
+        email: 'test-user2@some.thing',
         isAdmin: false,
       };
-      return request(app.getHttpServer())
+      await request(app.getHttpServer())
+        .post('/register')
+        .send(user)
+        .expect(HttpStatus.CREATED);
+      await request(app.getHttpServer())
         .post('/register')
         .send(user)
         .expect(HttpStatus.BAD_REQUEST);
+    });
+  });
+
+  describe('While testing login flows', () => {
+    it('should fail login for missing username', () => {
+      return request(app.getHttpServer())
+        .post('/login')
+        .send({ password: 'test-password0' })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: [
+            'username must be longer than or equal to 3 characters',
+            'username must be a string',
+          ],
+          error: 'Bad Request',
+        });
+    });
+
+    it('should fail login for invalid type of username', () => {
+      return request(app.getHttpServer())
+        .post('/login')
+        .send({ username: 1, password: 'test-password0' })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: [
+            'username must be longer than or equal to 3 characters',
+            'username must be a string',
+          ],
+          error: 'Bad Request',
+        });
+    });
+
+    it('should fail login for too short username', () => {
+      return request(app.getHttpServer())
+        .post('/login')
+        .send({ username: 'un', password: 'test-password0' })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: ['username must be longer than or equal to 3 characters'],
+          error: 'Bad Request',
+        });
+    });
+
+    it('should fail login for missing password', () => {
+      return request(app.getHttpServer())
+        .post('/login')
+        .send({ username: 'test-user0' })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: [
+            'password must be longer than or equal to 8 characters',
+            'password must be a string',
+          ],
+          error: 'Bad Request',
+        });
+    });
+
+    it('should fail login for invalid type of password', () => {
+      return request(app.getHttpServer())
+        .post('/login')
+        .send({ username: 'test-user0', password: 1 })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: [
+            'password must be longer than or equal to 8 characters',
+            'password must be a string',
+          ],
+          error: 'Bad Request',
+        });
+    });
+
+    it('should fail login for too short password', () => {
+      return request(app.getHttpServer())
+        .post('/login')
+        .send({ username: 'test-user0', password: 'pw' })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: ['password must be longer than or equal to 8 characters'],
+          error: 'Bad Request',
+        });
+    });
+
+    it('should successfully login with valid username and password', async () => {
+      const user = { username: 'test-user0', password: 'test-password0' };
+      request(app.getHttpServer())
+        .post('/register')
+        .send(user)
+        .expect(HttpStatus.BAD_REQUEST);
+
+      const { body } = await request(app.getHttpServer())
+        .post('/login')
+        .send(user)
+        .expect(HttpStatus.OK);
+      expect(body.accessToken).toBeDefined();
+      expect(Object.keys(body)).toStrictEqual(['accessToken']);
+      const decoded = new JwtService({ secret: constants.jwt.secret }).verify(
+        body.accessToken,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...rest } = decoded;
+      expect(decoded.username).toStrictEqual(user.username);
+      const expectedKeys = ['username', 'id', 'iat', 'exp'];
+      const receivedKeys = Object.keys(rest);
+      expect(
+        expectedKeys.every((element) => receivedKeys.includes(element)),
+      ).toStrictEqual(true);
+      expect(expectedKeys.length).toStrictEqual(receivedKeys.length);
+      expect(rest.id).toBeDefined();
     });
   });
 });

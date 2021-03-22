@@ -1,22 +1,43 @@
 import { Injectable } from '@nestjs/common';
-import * as users from '../data/users.json';
 import { JwtService } from '@nestjs/jwt';
-import IUser from './user.interface';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+import Users from './users.entity';
 import { LoginDto } from './auth.dto';
+import {
+  comparePasswords,
+  hashPassword,
+  isValidPasswordFormat,
+} from '../common/cryptography';
 
 @Injectable()
 export default class AuthService {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    @InjectRepository(Users)
+    private usersRepository: Repository<Users>,
+  ) {}
 
   async validateUser(payload: {
     username: string;
     password: string;
   }): Promise<any> {
-    return users.find(
-      (user) =>
-        user.username === payload.username &&
-        user.password === payload.password,
-    );
+    const user = await this.findByUsername(payload);
+
+    if (user) {
+      const { hash, salt, ...result } = user;
+      const validPassword = await comparePasswords(
+        payload.password,
+        hash,
+        salt,
+      );
+      if (!validPassword) {
+        return null;
+      }
+      return result;
+    }
+    return user;
   }
 
   async login(user: LoginDto): Promise<any> {
@@ -25,24 +46,44 @@ export default class AuthService {
     if (!validUser) {
       throw new Error('Invalid username and/or password.');
     }
-    const payload = { username: username, password: password };
+    const userId = await this.findByUsername(user);
+    const payload = { id: userId.id, username: username, password: password };
     return {
       accessToken: this.jwtService.sign(payload),
     };
   }
 
-  async register(user: IUser) {
-    const { username, email } = user;
+  async register(user) {
+    const { password, ...rest } = user;
 
-    const existingUser = users.find(
-      (user) => user.username === username || user.email === email,
-    );
-    if (existingUser) {
+    const targetUsername = await this.findByUsername(rest);
+    if (targetUsername) {
       throw new Error('User already exists.');
     }
 
-    users.push({ isAdmin: false, ...user });
+    const targetEmail = await this.findByEmail(rest);
+    if (targetEmail) {
+      throw new Error('User already exists.');
+    }
 
-    return users.find((newUser) => newUser.username === user.username);
+    if (!isValidPasswordFormat(password)) {
+      throw new Error('Incorrect password.');
+    }
+
+    const result = await hashPassword(password);
+    await this.usersRepository.insert({ isAdmin: false, ...rest, ...result });
+
+    const newUser = await this.findByUsername(rest);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { hash, salt, ...newRest } = newUser;
+    return newRest;
+  }
+
+  async findByUsername(user: any): Promise<any> {
+    return await this.usersRepository.findOne({ username: user.username });
+  }
+
+  async findByEmail(user: any): Promise<any> {
+    return await this.usersRepository.findOne({ email: user.email });
   }
 }
