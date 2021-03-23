@@ -2,6 +2,11 @@ import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConne
 
 const pgSchema = process.env.DB_SCHEMA || 'public';
 
+const AUTH_GUARD_TYPES_ENUM = {
+  ADMIN: 'ADMIN',
+  AUTHORIZED: 'AUTHORIZED',
+};
+
 export default {
   port: +process.env.PORT || 3000,
   database: {
@@ -17,4 +22,5 @@ export default {
     secret: process.env.JWT_SECRET || 'strongSecretKey',
     expiresIn: process.env.JWT_EXPIRES_IN || '60h',
   },
+  AUTH_GUARD_TYPES_ENUM,
 };
