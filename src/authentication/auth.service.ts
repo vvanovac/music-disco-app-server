@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import Users from './users.entity';
-import { LoginDto } from './auth.dto';
+import { ILogin, ILoginUser, IUser } from './user.interface';
 import {
   comparePasswords,
   hashPassword,
@@ -19,10 +19,7 @@ export default class AuthService {
     private usersRepository: Repository<Users>,
   ) {}
 
-  async validateUser(payload: {
-    username: string;
-    password: string;
-  }): Promise<any> {
+  async validateUser(payload: ILoginUser): Promise<IUser> {
     const user = await this.findUser({ username: payload.username }, true);
     if (user) {
       const { hash, salt, ...result } = user;
@@ -39,20 +36,19 @@ export default class AuthService {
     return user;
   }
 
-  async login(user: LoginDto): Promise<any> {
-    const { username, password } = user;
+  async login({ username, password }: ILoginUser): Promise<ILogin> {
     const validUser = await this.validateUser({ username, password });
     if (!validUser) {
       throw new Error('Invalid username and/or password.');
     }
-    const userId = await this.findUser({ username: username });
-    const payload = { id: userId.id, username: username, password: password };
+    const user = await this.findUser({ username: username });
+    const payload = { id: user.id, username: username, isAdmin: user.isAdmin };
     return {
       accessToken: this.jwtService.sign(payload),
     };
   }
 
-  async register(user) {
+  async register(user: IUser): Promise<IUser> {
     const { password, ...rest } = user;
 
     const targetUsername = await this.findUser({ username: rest.username });
@@ -75,13 +71,11 @@ export default class AuthService {
     return await this.findUser(rest);
   }
 
-  async findUser(user: any, addHashSalt?): Promise<any> {
-    return await this.usersRepository.findOne(user, {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      select: ['id', 'username', 'email', 'isAdmin'].concat(
-        addHashSalt ? ['hash', 'salt'] : [],
-      ),
-    });
+  async findUser(user: Partial<IUser>, addHashSalt?: boolean): Promise<IUser> {
+    const select: (keyof Users)[] = ['id', 'username', 'email', 'isAdmin'];
+    if (addHashSalt) {
+      select.push('hash', 'salt');
+    }
+    return await this.usersRepository.findOne(user, { select });
   }
 }

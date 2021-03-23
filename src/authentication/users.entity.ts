@@ -17,6 +17,6 @@ export default class Users {
   @Column({ type: 'varchar' })
   email: string;
 
-  @Column({ type: 'varchar', nullable: true })
-  isAdmin: string;
+  @Column({ type: 'boolean', nullable: true })
+  isAdmin: boolean;
 }
