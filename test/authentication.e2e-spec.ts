@@ -40,7 +40,9 @@ describe('Authentication Module', () => {
   });
 
   afterEach(async () => {
-    await repository.query(`TRUNCATE users RESTART IDENTITY;`);
+    await repository.query(
+      `TRUNCATE ${repository.metadata.tablePath} RESTART IDENTITY;`,
+    );
     await app.close();
   });
 
@@ -400,16 +402,14 @@ describe('Authentication Module', () => {
       const decoded = new JwtService({ secret: constants.jwt.secret }).verify(
         body.accessToken,
       );
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...rest } = decoded;
       expect(decoded.username).toStrictEqual(user.username);
-      const expectedKeys = ['username', 'id', 'iat', 'exp'];
-      const receivedKeys = Object.keys(rest);
+      const expectedKeys = ['username', 'id', 'isAdmin', 'iat', 'exp'];
+      const receivedKeys = Object.keys(decoded);
       expect(
         expectedKeys.every((element) => receivedKeys.includes(element)),
       ).toStrictEqual(true);
       expect(expectedKeys.length).toStrictEqual(receivedKeys.length);
-      expect(rest.id).toBeDefined();
+      expect(decoded.id).toBeDefined();
     });
   });
 });
