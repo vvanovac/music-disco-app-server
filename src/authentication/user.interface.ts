@@ -16,3 +16,8 @@ export interface ILoginUser {
   readonly username: string;
   readonly password: string;
 }
+
+export interface IFindUserAdditionalOptions {
+  readonly addID?: boolean;
+  readonly addHashSalt?: boolean;
+}

@@ -14,6 +14,7 @@ const dataInjected = [
     username: 'test-user0',
     password: 'test-password0',
     email: 'test-user0@some.thing',
+    isAdmin: false,
   },
 ];
 
@@ -238,7 +239,7 @@ describe('Authentication Module', () => {
         .post('/register')
         .send(user)
         .expect(HttpStatus.CREATED);
-      const expectedKeys = ['id', 'username', 'email', 'isAdmin'];
+      const expectedKeys = ['username', 'email', 'isAdmin'];
       const receivedKeys = Object.keys(body);
       expect(
         expectedKeys.every((element) => receivedKeys.includes(element)),
@@ -257,7 +258,7 @@ describe('Authentication Module', () => {
         .post('/register')
         .send(user)
         .expect(HttpStatus.CREATED);
-      const expectedKeys = ['id', 'username', 'email', 'isAdmin'];
+      const expectedKeys = ['username', 'email', 'isAdmin'];
       const receivedKeys = Object.keys(body);
       expect(
         expectedKeys.every((element) => receivedKeys.includes(element)),
@@ -412,6 +413,71 @@ describe('Authentication Module', () => {
       const databaseUser = await repository.findOne(decoded.id);
       expect(databaseUser.username).toStrictEqual(decoded.username);
       expect(databaseUser.isAdmin).toStrictEqual(decoded.isAdmin);
+    });
+  });
+
+  describe('While testing token validation flows', () => {
+    let token;
+    const userUsed = dataInjected[0];
+
+    beforeEach(async () => {
+      const { body } = await request(app.getHttpServer())
+        .post('/login')
+        .send(userUsed);
+      token = `Bearer ${body.accessToken}`;
+    });
+
+    it('should fail returning current user with missing token', async () => {
+      await request(app.getHttpServer())
+        .get('/currentUser')
+        .set('Authorization', '')
+        .expect(HttpStatus.UNAUTHORIZED)
+        .expect({
+          statusCode: 401,
+          message: 'Unauthorized',
+        });
+    });
+
+    it('should fail returning current user with invalid token', async () => {
+      token = token.replace(token.slice(token.length - 5), 'a!b!c');
+      await request(app.getHttpServer())
+        .get('/currentUser')
+        .set('Authorization', token)
+        .expect(HttpStatus.UNAUTHORIZED)
+        .expect({
+          statusCode: 401,
+          message: 'Unauthorized',
+        });
+    });
+
+    it('should fail returning current user with expired token', async () => {
+      const { iat, exp } = new JwtService({
+        secret: constants.jwt.secret,
+      }).verify(token.replace('Bearer ', ''));
+      await new Promise((resolve) =>
+        setTimeout(resolve, (exp - iat) * 1000 + 5),
+      );
+      await request(app.getHttpServer())
+        .get('/currentUser')
+        .set('Authorization', token)
+        .expect(HttpStatus.UNAUTHORIZED)
+        .expect({
+          statusCode: 401,
+          message: 'Unauthorized',
+        });
+    });
+
+    it('should return current user', async () => {
+      const { body: currentUser } = await request(app.getHttpServer())
+        .get('/currentUser')
+        .set('Authorization', token)
+        .expect(HttpStatus.OK);
+      expect(currentUser.username).toStrictEqual(userUsed.username);
+      expect(currentUser.isAdmin).toStrictEqual(userUsed.isAdmin);
+      expect(currentUser.email).toStrictEqual(userUsed.email);
+      expect(currentUser.password).toBeUndefined();
+      expect(currentUser.hash).toBeUndefined();
+      expect(currentUser.salt).toBeUndefined();
     });
   });
 });

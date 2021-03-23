@@ -1,5 +1,15 @@
-import { Body, Controller, Post, Res, HttpStatus } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Get,
+  Req,
+  Res,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 
+import { JwtAuthGuard } from './jwt.auth.guard';
 import AuthService from './auth.service';
 import { LoginDto, RegisterDto } from './auth.dto';
 
@@ -24,6 +34,22 @@ export default class AuthController {
     try {
       const data = await this.authService.register(body);
       return res.status(HttpStatus.CREATED).json(data);
+    } catch (error) {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: error.message });
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('currentUser')
+  async getUser(@Req() req, @Res() res) {
+    try {
+      const user = await this.authService.findUser({
+        id: req.user.id,
+        username: req.user.username,
+      });
+      return res.status(HttpStatus.OK).json(user);
     } catch (error) {
       return res
         .status(HttpStatus.BAD_REQUEST)
