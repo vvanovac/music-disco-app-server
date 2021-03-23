@@ -409,7 +409,9 @@ describe('Authentication Module', () => {
         expectedKeys.every((element) => receivedKeys.includes(element)),
       ).toStrictEqual(true);
       expect(expectedKeys.length).toStrictEqual(receivedKeys.length);
-      expect(decoded.id).toBeDefined();
+      const databaseUser = await repository.findOne(decoded.id);
+      expect(databaseUser.username).toStrictEqual(decoded.username);
+      expect(databaseUser.isAdmin).toStrictEqual(decoded.isAdmin);
     });
   });
 });
