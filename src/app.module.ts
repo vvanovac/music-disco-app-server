@@ -3,13 +3,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import AuthModule from './authentication/auth.module';
 import Users from './authentication/users.entity';
-import constants from './common/constants';
+import { database } from './common/constants';
 
 @Module({
   imports: [
     AuthModule,
     TypeOrmModule.forRoot({
-      ...constants.database,
+      ...database,
       keepConnectionAlive: true,
       entities: [Users],
       synchronize: true,

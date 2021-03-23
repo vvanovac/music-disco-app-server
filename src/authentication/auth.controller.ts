@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Post,
-  Get,
-  Req,
-  Res,
-  HttpStatus,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, Get, Req, Res, HttpStatus, UseGuards } from '@nestjs/common';
 
 import { JwtAuthGuard } from './jwt.auth.guard';
 import AuthService from './auth.service';
@@ -23,9 +14,7 @@ export default class AuthController {
       const data = await this.authService.login(body);
       return res.status(HttpStatus.OK).json(data);
     } catch (error) {
-      return res
-        .status(HttpStatus.UNAUTHORIZED)
-        .json({ message: error.message });
+      return res.status(HttpStatus.UNAUTHORIZED).json({ message: error.message });
     }
   }
 
@@ -35,9 +24,7 @@ export default class AuthController {
       const data = await this.authService.register(body);
       return res.status(HttpStatus.CREATED).json(data);
     } catch (error) {
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ message: error.message });
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
     }
   }
 
@@ -51,9 +38,7 @@ export default class AuthController {
       });
       return res.status(HttpStatus.OK).json(user);
     } catch (error) {
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ message: error.message });
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
     }
   }
 }

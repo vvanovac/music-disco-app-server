@@ -6,7 +6,7 @@ import * as request from 'supertest';
 
 import { AppModule } from '../src/app.module';
 import Users from '../src/authentication/users.entity';
-import constants from '../src/common/constants';
+import { jwt } from '../src/common/constants';
 import { hashPassword } from '../src/common/cryptography';
 
 const dataInjected = [
@@ -41,9 +41,7 @@ describe('Authentication Module', () => {
   });
 
   afterEach(async () => {
-    await repository.query(
-      `TRUNCATE ${repository.metadata.tablePath} RESTART IDENTITY;`,
-    );
+    await repository.query(`TRUNCATE ${repository.metadata.tablePath} RESTART IDENTITY;`);
     await app.close();
   });
 
@@ -54,11 +52,8 @@ describe('Authentication Module', () => {
         .send({ password: 'test-password1', email: 'test-user1@some.thing' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
-          message: [
-            'username must be longer than or equal to 3 characters',
-            'username must be a string',
-          ],
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: ['username must be longer than or equal to 3 characters', 'username must be a string'],
           error: 'Bad Request',
         });
     });
@@ -73,11 +68,8 @@ describe('Authentication Module', () => {
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
-          message: [
-            'username must be longer than or equal to 3 characters',
-            'username must be a string',
-          ],
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: ['username must be longer than or equal to 3 characters', 'username must be a string'],
           error: 'Bad Request',
         });
     });
@@ -92,7 +84,7 @@ describe('Authentication Module', () => {
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
+          statusCode: HttpStatus.BAD_REQUEST,
           message: ['username must be longer than or equal to 3 characters'],
           error: 'Bad Request',
         });
@@ -104,11 +96,8 @@ describe('Authentication Module', () => {
         .send({ username: 'test-user1', email: 'test-user1@some.thing' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
-          message: [
-            'password must be longer than or equal to 8 characters',
-            'password must be a string',
-          ],
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: ['password must be longer than or equal to 8 characters', 'password must be a string'],
           error: 'Bad Request',
         });
     });
@@ -123,11 +112,8 @@ describe('Authentication Module', () => {
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
-          message: [
-            'password must be longer than or equal to 8 characters',
-            'password must be a string',
-          ],
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: ['password must be longer than or equal to 8 characters', 'password must be a string'],
           error: 'Bad Request',
         });
     });
@@ -142,7 +128,7 @@ describe('Authentication Module', () => {
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
+          statusCode: HttpStatus.BAD_REQUEST,
           message: ['password must be longer than or equal to 8 characters'],
           error: 'Bad Request',
         });
@@ -154,7 +140,7 @@ describe('Authentication Module', () => {
         .send({ username: 'test-user1', password: 'test-password1' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
+          statusCode: HttpStatus.BAD_REQUEST,
           message: ['email must be an email'],
           error: 'Bad Request',
         });
@@ -166,7 +152,7 @@ describe('Authentication Module', () => {
         .send({ username: 'test-user1', password: 'test-password1', email: 1 })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
+          statusCode: HttpStatus.BAD_REQUEST,
           message: ['email must be an email'],
           error: 'Bad Request',
         });
@@ -182,7 +168,7 @@ describe('Authentication Module', () => {
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
+          statusCode: HttpStatus.BAD_REQUEST,
           message: ['email must be an email'],
           error: 'Bad Request',
         });
@@ -223,7 +209,7 @@ describe('Authentication Module', () => {
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
+          statusCode: HttpStatus.BAD_REQUEST,
           message: ['isAdmin must be a boolean value'],
           error: 'Bad Request',
         });
@@ -235,15 +221,10 @@ describe('Authentication Module', () => {
         password: 'test-password2',
         email: 'test-user2@some.thing',
       };
-      const { body } = await request(app.getHttpServer())
-        .post('/register')
-        .send(user)
-        .expect(HttpStatus.CREATED);
+      const { body } = await request(app.getHttpServer()).post('/register').send(user).expect(HttpStatus.CREATED);
       const expectedKeys = ['username', 'email', 'isAdmin'];
       const receivedKeys = Object.keys(body);
-      expect(
-        expectedKeys.every((element) => receivedKeys.includes(element)),
-      ).toStrictEqual(true);
+      expect(expectedKeys.every((element) => receivedKeys.includes(element))).toStrictEqual(true);
       expect(expectedKeys.length).toStrictEqual(receivedKeys.length);
     });
 
@@ -254,15 +235,10 @@ describe('Authentication Module', () => {
         email: 'test-user2@some.thing',
         isAdmin: false,
       };
-      const { body } = await request(app.getHttpServer())
-        .post('/register')
-        .send(user)
-        .expect(HttpStatus.CREATED);
+      const { body } = await request(app.getHttpServer()).post('/register').send(user).expect(HttpStatus.CREATED);
       const expectedKeys = ['username', 'email', 'isAdmin'];
       const receivedKeys = Object.keys(body);
-      expect(
-        expectedKeys.every((element) => receivedKeys.includes(element)),
-      ).toStrictEqual(true);
+      expect(expectedKeys.every((element) => receivedKeys.includes(element))).toStrictEqual(true);
       expect(expectedKeys.length).toStrictEqual(receivedKeys.length);
     });
 
@@ -291,14 +267,8 @@ describe('Authentication Module', () => {
         email: 'test-user2@some.thing',
         isAdmin: false,
       };
-      await request(app.getHttpServer())
-        .post('/register')
-        .send(user)
-        .expect(HttpStatus.CREATED);
-      await request(app.getHttpServer())
-        .post('/register')
-        .send(user)
-        .expect(HttpStatus.BAD_REQUEST);
+      await request(app.getHttpServer()).post('/register').send(user).expect(HttpStatus.CREATED);
+      await request(app.getHttpServer()).post('/register').send(user).expect(HttpStatus.BAD_REQUEST);
     });
   });
 
@@ -309,11 +279,8 @@ describe('Authentication Module', () => {
         .send({ password: 'test-password0' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
-          message: [
-            'username must be longer than or equal to 3 characters',
-            'username must be a string',
-          ],
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: ['username must be longer than or equal to 3 characters', 'username must be a string'],
           error: 'Bad Request',
         });
     });
@@ -324,11 +291,8 @@ describe('Authentication Module', () => {
         .send({ username: 1, password: 'test-password0' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
-          message: [
-            'username must be longer than or equal to 3 characters',
-            'username must be a string',
-          ],
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: ['username must be longer than or equal to 3 characters', 'username must be a string'],
           error: 'Bad Request',
         });
     });
@@ -339,7 +303,7 @@ describe('Authentication Module', () => {
         .send({ username: 'un', password: 'test-password0' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
+          statusCode: HttpStatus.BAD_REQUEST,
           message: ['username must be longer than or equal to 3 characters'],
           error: 'Bad Request',
         });
@@ -351,11 +315,8 @@ describe('Authentication Module', () => {
         .send({ username: 'test-user0' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
-          message: [
-            'password must be longer than or equal to 8 characters',
-            'password must be a string',
-          ],
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: ['password must be longer than or equal to 8 characters', 'password must be a string'],
           error: 'Bad Request',
         });
     });
@@ -366,11 +327,8 @@ describe('Authentication Module', () => {
         .send({ username: 'test-user0', password: 1 })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
-          message: [
-            'password must be longer than or equal to 8 characters',
-            'password must be a string',
-          ],
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: ['password must be longer than or equal to 8 characters', 'password must be a string'],
           error: 'Bad Request',
         });
     });
@@ -381,7 +339,7 @@ describe('Authentication Module', () => {
         .send({ username: 'test-user0', password: 'pw' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
-          statusCode: 400,
+          statusCode: HttpStatus.BAD_REQUEST,
           message: ['password must be longer than or equal to 8 characters'],
           error: 'Bad Request',
         });
@@ -389,26 +347,16 @@ describe('Authentication Module', () => {
 
     it('should successfully login with valid username and password', async () => {
       const user = { username: 'test-user0', password: 'test-password0' };
-      request(app.getHttpServer())
-        .post('/register')
-        .send(user)
-        .expect(HttpStatus.BAD_REQUEST);
+      request(app.getHttpServer()).post('/register').send(user).expect(HttpStatus.BAD_REQUEST);
 
-      const { body } = await request(app.getHttpServer())
-        .post('/login')
-        .send(user)
-        .expect(HttpStatus.OK);
+      const { body } = await request(app.getHttpServer()).post('/login').send(user).expect(HttpStatus.OK);
       expect(body.accessToken).toBeDefined();
       expect(Object.keys(body)).toStrictEqual(['accessToken']);
-      const decoded = new JwtService({ secret: constants.jwt.secret }).verify(
-        body.accessToken,
-      );
+      const decoded = new JwtService({ secret: jwt.secret }).verify(body.accessToken);
       expect(decoded.username).toStrictEqual(user.username);
       const expectedKeys = ['username', 'id', 'isAdmin', 'iat', 'exp'];
       const receivedKeys = Object.keys(decoded);
-      expect(
-        expectedKeys.every((element) => receivedKeys.includes(element)),
-      ).toStrictEqual(true);
+      expect(expectedKeys.every((element) => receivedKeys.includes(element))).toStrictEqual(true);
       expect(expectedKeys.length).toStrictEqual(receivedKeys.length);
       const databaseUser = await repository.findOne(decoded.id);
       expect(databaseUser.username).toStrictEqual(decoded.username);
@@ -421,9 +369,7 @@ describe('Authentication Module', () => {
     const userUsed = dataInjected[0];
 
     beforeEach(async () => {
-      const { body } = await request(app.getHttpServer())
-        .post('/login')
-        .send(userUsed);
+      const { body } = await request(app.getHttpServer()).post('/login').send(userUsed);
       token = `Bearer ${body.accessToken}`;
     });
 
@@ -452,11 +398,9 @@ describe('Authentication Module', () => {
 
     it('should fail returning current user with expired token', async () => {
       const { iat, exp } = new JwtService({
-        secret: constants.jwt.secret,
+        secret: jwt.secret,
       }).verify(token.replace('Bearer ', ''));
-      await new Promise((resolve) =>
-        setTimeout(resolve, (exp - iat) * 1000 + 5),
-      );
+      await new Promise((resolve) => setTimeout(resolve, (exp - iat) * 1000 + 5));
       await request(app.getHttpServer())
         .get('/currentUser')
         .set('Authorization', token)

@@ -4,17 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import Users from './users.entity';
-import {
-  IFindUserAdditionalOptions,
-  ILogin,
-  ILoginUser,
-  IUser,
-} from './user.interface';
-import {
-  comparePasswords,
-  hashPassword,
-  isValidPasswordFormat,
-} from '../common/cryptography';
+import { IFindUserAdditionalOptions, ILogin, ILoginUser, IUser } from './user.interface';
+import { comparePasswords, hashPassword, isValidPasswordFormat } from '../common/cryptography';
 
 @Injectable()
 export default class AuthService {
@@ -25,17 +16,10 @@ export default class AuthService {
   ) {}
 
   async validateUser(payload: ILoginUser): Promise<IUser> {
-    const user = await this.findUser(
-      { username: payload.username },
-      { addHashSalt: true },
-    );
+    const user = await this.findUser({ username: payload.username }, { addHashSalt: true });
     if (user) {
       const { hash, salt, ...result } = user;
-      const validPassword = await comparePasswords(
-        payload.password,
-        hash,
-        salt,
-      );
+      const validPassword = await comparePasswords(payload.password, hash, salt);
       if (!validPassword) {
         return null;
       }
@@ -79,10 +63,7 @@ export default class AuthService {
     return await this.findUser(rest);
   }
 
-  async findUser(
-    user: Partial<IUser>,
-    { addHashSalt, addID }: IFindUserAdditionalOptions = {},
-  ): Promise<IUser> {
+  async findUser(user: Partial<IUser>, { addHashSalt, addID }: IFindUserAdditionalOptions = {}): Promise<IUser> {
     const select: (keyof Users)[] = ['username', 'email', 'isAdmin'];
     if (addHashSalt) {
       select.push('hash', 'salt');
