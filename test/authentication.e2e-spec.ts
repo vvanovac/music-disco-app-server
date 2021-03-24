@@ -1,13 +1,12 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, HttpStatus, ValidationPipe } from '@nestjs/common';
+import { INestApplication, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import * as request from 'supertest';
 
-import { AppModule } from '../src/app.module';
 import Users from '../src/authentication/users.entity';
 import { jwt } from '../src/common/constants';
 import { hashPassword } from '../src/common/cryptography';
+import { StartServer, StopServer } from './common.functions';
 
 const dataInjected = [
   {
@@ -23,27 +22,18 @@ describe('Authentication Module', () => {
   let repository: Repository<Users>;
 
   beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe());
-    await app.init();
-    repository = moduleFixture.get('UsersRepository');
     const remapped = await Promise.all(
       dataInjected.map(async ({ password, ...rest }) => {
         const result = await hashPassword(password);
         return { ...rest, ...result };
       }),
     );
-    await repository.save(remapped);
+    const startData = await StartServer('UsersRepository', remapped);
+    app = startData.app;
+    repository = startData.repository;
   });
 
-  afterEach(async () => {
-    await repository.query(`TRUNCATE ${repository.metadata.tablePath} RESTART IDENTITY;`);
-    await app.close();
-  });
+  afterEach(async () => StopServer(app, repository));
 
   describe('While testing register flows', () => {
     it('should fail registration with missing username', () => {

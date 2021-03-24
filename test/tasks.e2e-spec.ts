@@ -1,17 +1,16 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, HttpStatus, ValidationPipe } from '@nestjs/common';
+import { INestApplication, HttpStatus } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import * as request from 'supertest';
 
-import { AppModule } from '../src/app.module';
 import Tasks from '../src/tasks/tasks.entity';
 import ITask from '../src/tasks/task.interface';
+import { StartServer, StopServer } from './common.functions';
 
-const dataToCompare = (expected, recieved) => {
-  expect(expected.title).toStrictEqual(recieved.title);
-  expect(expected.subtitle).toStrictEqual(recieved.subtitle);
-  expect(expected.description).toStrictEqual(recieved.description);
-  expect(expected.imageURL).toStrictEqual(recieved.imageURL);
+const dataToCompare = (expected, received) => {
+  expect(expected.title).toStrictEqual(received.title);
+  expect(expected.subtitle).toStrictEqual(received.subtitle);
+  expect(expected.description).toStrictEqual(received.description);
+  expect(expected.imageURL).toStrictEqual(received.imageURL);
 };
 
 const dataInjected = [
@@ -34,21 +33,12 @@ describe('Tasks Module', () => {
   let repository: Repository<Tasks>;
 
   beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe());
-    await app.init();
-    repository = moduleFixture.get('TasksRepository');
-    await repository.save(dataInjected);
+    const startData = await StartServer('TasksRepository', dataInjected);
+    app = startData.app;
+    repository = startData.repository;
   });
 
-  afterEach(async () => {
-    await repository.query(`TRUNCATE ${repository.metadata.tablePath} RESTART IDENTITY;`);
-    await app.close();
-  });
+  afterEach(async () => StopServer(app, repository));
 
   describe('While testing creating task flows', () => {
     it('should fail creating task with missing title', () => {
