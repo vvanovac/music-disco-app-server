@@ -46,7 +46,7 @@ describe('Tasks Module', () => {
   });
 
   afterEach(async () => {
-    await repository.query(`TRUNCATE tasks RESTART IDENTITY;`);
+    await repository.query(`TRUNCATE ${repository.metadata.tablePath} RESTART IDENTITY;`);
     await app.close();
   });
 
@@ -146,10 +146,7 @@ describe('Tasks Module', () => {
         subtitle: 'task 1',
         description: 'task 1',
       };
-      const { body } = await request(app.getHttpServer())
-        .post('/tasks')
-        .send(create)
-        .expect(HttpStatus.CREATED);
+      const { body } = await request(app.getHttpServer()).post('/tasks').send(create).expect(HttpStatus.CREATED);
       create.imageURL = null;
       const task = await repository.findOne(body.id);
       dataToCompare(create, task);
@@ -163,10 +160,7 @@ describe('Tasks Module', () => {
         description: 'task 1',
         imageURL: 'image-url.test',
       };
-      const { body } = await request(app.getHttpServer())
-        .post('/tasks')
-        .send(create)
-        .expect(HttpStatus.CREATED);
+      const { body } = await request(app.getHttpServer()).post('/tasks').send(create).expect(HttpStatus.CREATED);
 
       const task = await repository.findOne(body.id);
       dataToCompare(create, task);
@@ -180,10 +174,7 @@ describe('Tasks Module', () => {
         description: 'task 1',
         imageURL: null,
       };
-      const { body } = await request(app.getHttpServer())
-        .post('/tasks')
-        .send(create)
-        .expect(HttpStatus.CREATED);
+      const { body } = await request(app.getHttpServer()).post('/tasks').send(create).expect(HttpStatus.CREATED);
 
       const task = await repository.findOne(body.id);
       dataToCompare(create, task);
@@ -202,21 +193,15 @@ describe('Tasks Module', () => {
     });
 
     it('should successfully get all tasks', async () => {
-      const { body } = await request(app.getHttpServer())
-        .get('/tasks')
-        .expect(HttpStatus.OK);
+      const { body } = await request(app.getHttpServer()).get('/tasks').expect(HttpStatus.OK);
 
       expect(body.length).toStrictEqual(dataInjected.length);
-      body.forEach((bodyData, index) =>
-        dataToCompare(bodyData, dataInjected[index]),
-      );
+      body.forEach((bodyData, index) => dataToCompare(bodyData, dataInjected[index]));
     });
 
     it('should successfully get one task', async () => {
       const [databaseValue] = await repository.find({ take: 1 });
-      const { body } = await request(app.getHttpServer())
-        .get(`/tasks/${databaseValue.id}`)
-        .expect(HttpStatus.OK);
+      const { body } = await request(app.getHttpServer()).get(`/tasks/${databaseValue.id}`).expect(HttpStatus.OK);
 
       dataToCompare(body, databaseValue);
       expect(body.id).toStrictEqual(databaseValue.id);
@@ -324,10 +309,7 @@ describe('Tasks Module', () => {
     it('should successfully set imageURL from string to null', async () => {
       const update = { imageURL: null };
       const [databaseValue] = await repository.find({ take: 1 });
-      await repository.update(
-        { id: databaseValue.id },
-        { imageURL: 'image-url.test' },
-      );
+      await repository.update({ id: databaseValue.id }, { imageURL: 'image-url.test' });
       databaseValue.imageURL = 'image-url.test';
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
@@ -376,9 +358,7 @@ describe('Tasks Module', () => {
     });
 
     it('should successfully delete task', () => {
-      return request(app.getHttpServer())
-        .delete('/tasks/1')
-        .expect(HttpStatus.OK);
+      return request(app.getHttpServer()).delete('/tasks/1').expect(HttpStatus.OK);
     });
   });
 });
