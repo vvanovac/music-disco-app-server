@@ -4,7 +4,7 @@ import * as request from 'supertest';
 
 import Tasks from '../../src/tasks/tasks.entity';
 import ITask from '../../src/tasks/task.interface';
-import { GenerateSeed, StartServer, StopServer } from '../helpers/common.functions';
+import { GenerateSeed, GenerateToken, RemoveSeed, StartServer, StopServer } from '../helpers/common.functions';
 import { tasks } from '../helpers/seed.data';
 
 const dataToCompare = (expected, received) => {
@@ -14,10 +14,17 @@ const dataToCompare = (expected, received) => {
   expect(expected.imageURL).toStrictEqual(received.imageURL);
 };
 
+const GenerateHeader = (generateAuthorization = false, isAdmin = false) => {
+  const header: any = {};
+  if (generateAuthorization) {
+    header.Authorization = `Bearer ${GenerateToken(isAdmin)}`;
+  }
+  return header;
+};
+
 describe('Tasks Module', () => {
   let app: INestApplication;
   let repository: Repository<Tasks>;
-  let token;
 
   beforeEach(async () => {
     const startTasksData = await StartServer('Tasks');
@@ -27,17 +34,15 @@ describe('Tasks Module', () => {
 
   afterEach(async () => StopServer(app, repository));
 
-  beforeAll(async () => {
-    await GenerateSeed(['users']);
+  beforeAll(async () => GenerateSeed(['Users']));
 
-    token = `Bearer accessToken`;
-  });
+  afterAll(() => RemoveSeed(['Users']));
 
   describe('While testing creating task flows', () => {
     it('should fail creating task with missing title', () => {
       return request(app.getHttpServer())
         .post('/tasks')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send({ subtitle: 'task 1', description: 'task 1' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -50,7 +55,7 @@ describe('Tasks Module', () => {
     it('should fail creating task with invalid type of title', () => {
       return request(app.getHttpServer())
         .post('/tasks')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send({ title: 1, subtitle: 'task 1', description: 'task 1' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -63,7 +68,7 @@ describe('Tasks Module', () => {
     it('should fail creating task with missing subtitle', () => {
       return request(app.getHttpServer())
         .post('/tasks')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send({ title: 'task 1', description: 'task 1' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -76,7 +81,7 @@ describe('Tasks Module', () => {
     it('should fail creating task with invalid type of subtitle', () => {
       return request(app.getHttpServer())
         .post('/tasks')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send({ title: 'task 1', subtitle: 1, description: 'task 1' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -89,7 +94,7 @@ describe('Tasks Module', () => {
     it('should fail creating task with missing description', () => {
       return request(app.getHttpServer())
         .post('/tasks')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send({ title: 'task 1', subtitle: 'task 1' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -102,7 +107,7 @@ describe('Tasks Module', () => {
     it('should fail creating task with invalid type of description', () => {
       return request(app.getHttpServer())
         .post('/tasks')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send({ title: 'task 1', subtitle: 'task 1', description: 1 })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -115,7 +120,7 @@ describe('Tasks Module', () => {
     it('should fail creating task with invalid type of imageURL', () => {
       return request(app.getHttpServer())
         .post('/tasks')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send({
           title: 'task 1',
           subtitle: 'task 1',
@@ -138,7 +143,7 @@ describe('Tasks Module', () => {
       };
       const { body } = await request(app.getHttpServer())
         .post('/tasks')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send(create)
         .expect(HttpStatus.CREATED);
       create.imageURL = null;
@@ -156,7 +161,7 @@ describe('Tasks Module', () => {
       };
       const { body } = await request(app.getHttpServer())
         .post('/tasks')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send(create)
         .expect(HttpStatus.CREATED);
 
@@ -174,7 +179,7 @@ describe('Tasks Module', () => {
       };
       const { body } = await request(app.getHttpServer())
         .post('/tasks')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send(create)
         .expect(HttpStatus.CREATED);
 
@@ -189,7 +194,7 @@ describe('Tasks Module', () => {
       return request(app.getHttpServer())
         .get('/tasks/0')
         .expect(HttpStatus.OK)
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .then((data) => {
           expect(data.body).toBeNull();
         });
@@ -198,7 +203,7 @@ describe('Tasks Module', () => {
     it('should successfully get all tasks', async () => {
       const { body } = await request(app.getHttpServer())
         .get('/tasks')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .expect(HttpStatus.OK);
 
       expect(body.length).toStrictEqual(tasks().length);
@@ -209,7 +214,7 @@ describe('Tasks Module', () => {
       const [databaseValue] = await repository.find({ take: 1 });
       const { body } = await request(app.getHttpServer())
         .get(`/tasks/${databaseValue.id}`)
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .expect(HttpStatus.OK);
 
       dataToCompare(body, databaseValue);
@@ -221,7 +226,7 @@ describe('Tasks Module', () => {
     it('should fail updating task with not existing id', () => {
       return request(app.getHttpServer())
         .put('/tasks/0')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .expect(HttpStatus.BAD_REQUEST)
         .expect({ message: 'Task Not Found' });
     });
@@ -229,7 +234,7 @@ describe('Tasks Module', () => {
     it('should fail updating task with invalid type of title', () => {
       return request(app.getHttpServer())
         .put('/tasks/1')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send({ title: 1 })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -242,7 +247,7 @@ describe('Tasks Module', () => {
     it('should fail updating task with invalid type of subtitle', () => {
       return request(app.getHttpServer())
         .put('/tasks/1')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send({ subtitle: 1 })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -255,7 +260,7 @@ describe('Tasks Module', () => {
     it('should fail updating task with invalid type of description', () => {
       return request(app.getHttpServer())
         .put('/tasks/1')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send({ description: 1 })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -268,7 +273,7 @@ describe('Tasks Module', () => {
     it('should fail updating task with invalid type of imageURL', () => {
       return request(app.getHttpServer())
         .put('/tasks/1')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send({ imageURL: 'imageURL' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -283,7 +288,7 @@ describe('Tasks Module', () => {
       const [databaseValue] = await repository.find({ take: 1 });
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send(update)
         .expect(HttpStatus.OK);
       const newDatabaseValue = await repository.findOne(databaseValue.id);
@@ -299,7 +304,7 @@ describe('Tasks Module', () => {
       const [databaseValue] = await repository.find({ take: 1 });
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send(update)
         .expect(HttpStatus.OK);
       const newDatabaseValue = await repository.findOne(databaseValue.id);
@@ -315,7 +320,7 @@ describe('Tasks Module', () => {
       const [databaseValue] = await repository.find({ take: 1 });
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send(update)
         .expect(HttpStatus.OK);
       const newDatabaseValue = await repository.findOne(databaseValue.id);
@@ -330,7 +335,7 @@ describe('Tasks Module', () => {
       databaseValue.imageURL = 'image-url.test';
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send(update)
         .expect(HttpStatus.OK);
       const newDatabaseValue = await repository.findOne(databaseValue.id);
@@ -345,7 +350,7 @@ describe('Tasks Module', () => {
       databaseValue.imageURL = null;
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send(update)
         .expect(HttpStatus.OK);
       const newDatabaseValue = await repository.findOne(databaseValue.id);
@@ -360,7 +365,7 @@ describe('Tasks Module', () => {
       const [databaseValue] = await repository.find({ take: 1 });
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .send(update)
         .expect(HttpStatus.OK);
       const newDatabaseValue = await repository.findOne(databaseValue.id);
@@ -373,13 +378,13 @@ describe('Tasks Module', () => {
     it('should fail deleting task with not existing id', () => {
       return request(app.getHttpServer())
         .delete('/tasks/0')
-        .set('Authorization', token)
+        .set(GenerateHeader(true, true))
         .expect(HttpStatus.BAD_REQUEST)
         .expect({ message: 'Task Not Found' });
     });
 
     it('should successfully delete task', () => {
-      return request(app.getHttpServer()).delete('/tasks/1').set('Authorization', token).expect(HttpStatus.OK);
+      return request(app.getHttpServer()).delete('/tasks/1').set(GenerateHeader(true, true)).expect(HttpStatus.OK);
     });
   });
 });

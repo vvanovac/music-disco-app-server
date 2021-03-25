@@ -1,13 +1,17 @@
-import { Body, Param, Controller, HttpStatus, Post, Get, Put, Delete, Res } from '@nestjs/common';
+import { Body, Param, Controller, HttpStatus, Post, Get, Put, Delete, Res, UseGuards } from '@nestjs/common';
 
 import TasksService from './tasks.service';
 import { CreateTaskDto, UpdateTaskDto } from './task.dto';
 import ITask from './task.interface';
+import { JwtAuthGuard } from '../authentication/jwt.auth.guard';
+import { AUTH_GUARD_TYPES_ENUM } from '../common/constants';
 
+@UseGuards(JwtAuthGuard)
 @Controller('tasks')
 export default class TasksController {
   constructor(private tasksService: TasksService) {}
 
+  @UseGuards(new JwtAuthGuard(AUTH_GUARD_TYPES_ENUM.ADMIN))
   @Post()
   async create(@Body() createTaskDto: CreateTaskDto, @Res() res): Promise<ITask> {
     try {
@@ -38,6 +42,7 @@ export default class TasksController {
     }
   }
 
+  @UseGuards(new JwtAuthGuard(AUTH_GUARD_TYPES_ENUM.ADMIN))
   @Put(':id')
   async update(@Param('id') id, @Body() updateTaskDto: UpdateTaskDto, @Res() res): Promise<ITask> {
     try {
@@ -48,6 +53,7 @@ export default class TasksController {
     }
   }
 
+  @UseGuards(new JwtAuthGuard(AUTH_GUARD_TYPES_ENUM.ADMIN))
   @Delete(':id')
   async delete(@Param('id') id, @Res() res): Promise<ITask> {
     try {

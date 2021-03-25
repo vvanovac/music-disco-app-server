@@ -2,21 +2,21 @@ export const users = (excludePassword = true) =>
   [
     {
       username: 'test-user0',
-      password: 'password1',
+      password: 'password0',
       hash:
-        'eb4a2cffdcdf0ef1572f89f0c8241015cfcb2c6cf5df673c947859f93649e295affd3ea110c5adf1e40110a5020cb728945c42705a225a374d537b9c4eb7318b',
+        'b5ce3c4e57bd1fbf40c510a3a27879e9d633348896a6d79f0ea77a3d6325d46cb256e584703066367cafab61f09eae1ba04c58c67ef0193ef4f53ca9a07ec6b7',
       salt:
-        '5NtAo18bswVbQFnur5dMYTQERTsqv01YjmCmoeaZ3DtK02yQh0qkpkd4gbf8t8loxQvcajSwPftPtInoTwquIfhMLmDlBfMObsetJ8vr51iccWHKpP5MwCLh/zsegPIv6gJ4hs97WApHLSFX2YTEMJ3aduLFTocXWiR1d1TMeuM=',
+        '+Rat93rJWatk9pRogYKLpzOXc9oIeA+6XWAmJk8jZyJGkDHehflj3ZMcyybiHxoqdj7gUBR+FAT5Y0YeKwf1hiA2IpwXdN0CSBm4j1JK1WGM52PjX2PKd80qrfNKEMXUk0qPVpgax7nX7JzUPC0ycI0KZKlGHm0ykFvL4vV3ggA=',
       email: 'test-user0@some.thing',
       isAdmin: false,
     },
     {
       username: 'admin0',
-      password: 'admin123',
+      password: 'admin000',
       hash:
-        'f0eb905d24c3fe547ee64db1c80f39f767bc76829474451ddbe27ab46eb271bd0e49a154aee4dcae1b1cc77d907324e5a27f14007e970a67f6db92c9394c39db',
+        '6878716517ac62fdda21664a06a7445040387e6da0d9e20c8be644c72866f5bdd69a597093455ab2984652a6a6ac492273aedd5251d034e1b4f17ec2cbc6f679',
       salt:
-        'wlqechrijgUk9e4A30ePhEG4gpBKHrAFp/tuhFA45HO8AON4S/DitaJw81Y/H6yB+vZl/BwBBhnraU7gPNOG9qK/Pqj34yJfnBGVsrQekyiYBKNnj8oCiM7+OwGQZpuVFdqMwkEZfxxrr5IMGP2bRio4bnQHWCW6RrDe8mXDew0=',
+        '+Rat93rJWatk9pRogYKLpzOXc9oIeA+6XWAmJk8jZyJGkDHehflj3ZMcyybiHxoqdj7gUBR+FAT5Y0YeKwf1hiA2IpwXdN0CSBm4j1JK1WGM52PjX2PKd80qrfNKEMXUk0qPVpgax7nX7JzUPC0ycI0KZKlGHm0ykFvL4vV3ggA=',
       email: 'admin0@some.thing',
       isAdmin: true,
     },
