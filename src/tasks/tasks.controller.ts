@@ -1,14 +1,4 @@
-import {
-  Body,
-  Param,
-  Controller,
-  HttpStatus,
-  Post,
-  Get,
-  Put,
-  Delete,
-  Res,
-} from '@nestjs/common';
+import { Body, Param, Controller, HttpStatus, Post, Get, Put, Delete, Res } from '@nestjs/common';
 
 import TasksService from './tasks.service';
 import { CreateTaskDto, UpdateTaskDto } from './task.dto';
@@ -19,17 +9,12 @@ export default class TasksController {
   constructor(private tasksService: TasksService) {}
 
   @Post()
-  async create(
-    @Body() createTaskDto: CreateTaskDto,
-    @Res() res,
-  ): Promise<ITask> {
+  async create(@Body() createTaskDto: CreateTaskDto, @Res() res): Promise<ITask> {
     try {
       const task = await this.tasksService.createTask(createTaskDto);
       return res.status(HttpStatus.CREATED).json(task);
     } catch (error) {
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ message: error.message });
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
     }
   }
 
@@ -39,9 +24,7 @@ export default class TasksController {
       const tasks = await this.tasksService.findTasks();
       return res.status(HttpStatus.OK).json(tasks);
     } catch (error) {
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ message: error.message });
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
     }
   }
 
@@ -51,25 +34,17 @@ export default class TasksController {
       const task = await this.tasksService.findTask(id);
       return res.status(HttpStatus.OK).json(task);
     } catch (error) {
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ message: error.message });
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
     }
   }
 
   @Put(':id')
-  async update(
-    @Param('id') id,
-    @Body() updateTaskDto: UpdateTaskDto,
-    @Res() res,
-  ): Promise<ITask> {
+  async update(@Param('id') id, @Body() updateTaskDto: UpdateTaskDto, @Res() res): Promise<ITask> {
     try {
       const task = await this.tasksService.updateTask(id, updateTaskDto);
       return res.status(HttpStatus.OK).json(task);
     } catch (error) {
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ message: error.message });
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
     }
   }
 
@@ -79,9 +54,7 @@ export default class TasksController {
       const task = await this.tasksService.deleteTask(id);
       return res.status(HttpStatus.OK).json(task);
     } catch (error) {
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ message: error.message });
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
     }
   }
 }

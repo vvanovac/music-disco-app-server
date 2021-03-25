@@ -3,32 +3,17 @@ import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import * as request from 'supertest';
 
-import Users from '../src/authentication/users.entity';
-import { jwt } from '../src/common/constants';
-import { hashPassword } from '../src/common/cryptography';
-import { StartServer, StopServer } from './common.functions';
-
-const dataInjected = [
-  {
-    username: 'test-user0',
-    password: 'test-password0',
-    email: 'test-user0@some.thing',
-    isAdmin: false,
-  },
-];
+import Users from '../../src/authentication/users.entity';
+import { jwt } from '../../src/common/constants';
+import { StartServer, StopServer } from '../helpers/common.functions';
+import { users } from '../helpers/seed.data';
 
 describe('Authentication Module', () => {
   let app: INestApplication;
   let repository: Repository<Users>;
 
   beforeEach(async () => {
-    const remapped = await Promise.all(
-      dataInjected.map(async ({ password, ...rest }) => {
-        const result = await hashPassword(password);
-        return { ...rest, ...result };
-      }),
-    );
-    const startData = await StartServer('UsersRepository', remapped);
+    const startData = await StartServer('Users');
     app = startData.app;
     repository = startData.repository;
   });
@@ -336,7 +321,7 @@ describe('Authentication Module', () => {
     });
 
     it('should successfully login with valid username and password', async () => {
-      const user = { username: 'test-user0', password: 'test-password0' };
+      const [user] = users(false);
       request(app.getHttpServer()).post('/register').send(user).expect(HttpStatus.BAD_REQUEST);
 
       const { body } = await request(app.getHttpServer()).post('/login').send(user).expect(HttpStatus.OK);
@@ -356,7 +341,7 @@ describe('Authentication Module', () => {
 
   describe('While testing token validation flows', () => {
     let token;
-    const userUsed = dataInjected[0];
+    const [userUsed] = users(false);
 
     beforeEach(async () => {
       const { body } = await request(app.getHttpServer()).post('/login').send(userUsed);

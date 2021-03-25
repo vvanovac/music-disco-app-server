@@ -2,9 +2,10 @@ import { INestApplication, HttpStatus } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import * as request from 'supertest';
 
-import Tasks from '../src/tasks/tasks.entity';
-import ITask from '../src/tasks/task.interface';
-import { StartServer, StopServer } from './common.functions';
+import Tasks from '../../src/tasks/tasks.entity';
+import ITask from '../../src/tasks/task.interface';
+import { GenerateSeed, StartServer, StopServer } from '../helpers/common.functions';
+import { tasks } from '../helpers/seed.data';
 
 const dataToCompare = (expected, received) => {
   expect(expected.title).toStrictEqual(received.title);
@@ -13,37 +14,30 @@ const dataToCompare = (expected, received) => {
   expect(expected.imageURL).toStrictEqual(received.imageURL);
 };
 
-const dataInjected = [
-  {
-    title: 'test 1',
-    subtitle: 'test 1',
-    description: 'test 1',
-    image: 'image-url.test',
-  },
-  {
-    title: 'test 2',
-    subtitle: 'test 2',
-    description: 'test 2',
-    image: 'image-url.test',
-  },
-];
-
 describe('Tasks Module', () => {
   let app: INestApplication;
   let repository: Repository<Tasks>;
+  let token;
 
   beforeEach(async () => {
-    const startData = await StartServer('TasksRepository', dataInjected);
-    app = startData.app;
-    repository = startData.repository;
+    const startTasksData = await StartServer('Tasks');
+    app = startTasksData.app;
+    repository = startTasksData.repository;
   });
 
   afterEach(async () => StopServer(app, repository));
+
+  beforeAll(async () => {
+    await GenerateSeed(['users']);
+
+    token = `Bearer accessToken`;
+  });
 
   describe('While testing creating task flows', () => {
     it('should fail creating task with missing title', () => {
       return request(app.getHttpServer())
         .post('/tasks')
+        .set('Authorization', token)
         .send({ subtitle: 'task 1', description: 'task 1' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -56,6 +50,7 @@ describe('Tasks Module', () => {
     it('should fail creating task with invalid type of title', () => {
       return request(app.getHttpServer())
         .post('/tasks')
+        .set('Authorization', token)
         .send({ title: 1, subtitle: 'task 1', description: 'task 1' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -68,6 +63,7 @@ describe('Tasks Module', () => {
     it('should fail creating task with missing subtitle', () => {
       return request(app.getHttpServer())
         .post('/tasks')
+        .set('Authorization', token)
         .send({ title: 'task 1', description: 'task 1' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -80,6 +76,7 @@ describe('Tasks Module', () => {
     it('should fail creating task with invalid type of subtitle', () => {
       return request(app.getHttpServer())
         .post('/tasks')
+        .set('Authorization', token)
         .send({ title: 'task 1', subtitle: 1, description: 'task 1' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -92,6 +89,7 @@ describe('Tasks Module', () => {
     it('should fail creating task with missing description', () => {
       return request(app.getHttpServer())
         .post('/tasks')
+        .set('Authorization', token)
         .send({ title: 'task 1', subtitle: 'task 1' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -104,6 +102,7 @@ describe('Tasks Module', () => {
     it('should fail creating task with invalid type of description', () => {
       return request(app.getHttpServer())
         .post('/tasks')
+        .set('Authorization', token)
         .send({ title: 'task 1', subtitle: 'task 1', description: 1 })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -116,6 +115,7 @@ describe('Tasks Module', () => {
     it('should fail creating task with invalid type of imageURL', () => {
       return request(app.getHttpServer())
         .post('/tasks')
+        .set('Authorization', token)
         .send({
           title: 'task 1',
           subtitle: 'task 1',
@@ -136,7 +136,11 @@ describe('Tasks Module', () => {
         subtitle: 'task 1',
         description: 'task 1',
       };
-      const { body } = await request(app.getHttpServer()).post('/tasks').send(create).expect(HttpStatus.CREATED);
+      const { body } = await request(app.getHttpServer())
+        .post('/tasks')
+        .set('Authorization', token)
+        .send(create)
+        .expect(HttpStatus.CREATED);
       create.imageURL = null;
       const task = await repository.findOne(body.id);
       dataToCompare(create, task);
@@ -150,7 +154,11 @@ describe('Tasks Module', () => {
         description: 'task 1',
         imageURL: 'image-url.test',
       };
-      const { body } = await request(app.getHttpServer()).post('/tasks').send(create).expect(HttpStatus.CREATED);
+      const { body } = await request(app.getHttpServer())
+        .post('/tasks')
+        .set('Authorization', token)
+        .send(create)
+        .expect(HttpStatus.CREATED);
 
       const task = await repository.findOne(body.id);
       dataToCompare(create, task);
@@ -164,7 +172,11 @@ describe('Tasks Module', () => {
         description: 'task 1',
         imageURL: null,
       };
-      const { body } = await request(app.getHttpServer()).post('/tasks').send(create).expect(HttpStatus.CREATED);
+      const { body } = await request(app.getHttpServer())
+        .post('/tasks')
+        .set('Authorization', token)
+        .send(create)
+        .expect(HttpStatus.CREATED);
 
       const task = await repository.findOne(body.id);
       dataToCompare(create, task);
@@ -177,21 +189,28 @@ describe('Tasks Module', () => {
       return request(app.getHttpServer())
         .get('/tasks/0')
         .expect(HttpStatus.OK)
+        .set('Authorization', token)
         .then((data) => {
           expect(data.body).toBeNull();
         });
     });
 
     it('should successfully get all tasks', async () => {
-      const { body } = await request(app.getHttpServer()).get('/tasks').expect(HttpStatus.OK);
+      const { body } = await request(app.getHttpServer())
+        .get('/tasks')
+        .set('Authorization', token)
+        .expect(HttpStatus.OK);
 
-      expect(body.length).toStrictEqual(dataInjected.length);
-      body.forEach((bodyData, index) => dataToCompare(bodyData, dataInjected[index]));
+      expect(body.length).toStrictEqual(tasks().length);
+      body.forEach((bodyData, index) => dataToCompare(bodyData, tasks()[index]));
     });
 
     it('should successfully get one task', async () => {
       const [databaseValue] = await repository.find({ take: 1 });
-      const { body } = await request(app.getHttpServer()).get(`/tasks/${databaseValue.id}`).expect(HttpStatus.OK);
+      const { body } = await request(app.getHttpServer())
+        .get(`/tasks/${databaseValue.id}`)
+        .set('Authorization', token)
+        .expect(HttpStatus.OK);
 
       dataToCompare(body, databaseValue);
       expect(body.id).toStrictEqual(databaseValue.id);
@@ -202,6 +221,7 @@ describe('Tasks Module', () => {
     it('should fail updating task with not existing id', () => {
       return request(app.getHttpServer())
         .put('/tasks/0')
+        .set('Authorization', token)
         .expect(HttpStatus.BAD_REQUEST)
         .expect({ message: 'Task Not Found' });
     });
@@ -209,6 +229,7 @@ describe('Tasks Module', () => {
     it('should fail updating task with invalid type of title', () => {
       return request(app.getHttpServer())
         .put('/tasks/1')
+        .set('Authorization', token)
         .send({ title: 1 })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -221,6 +242,7 @@ describe('Tasks Module', () => {
     it('should fail updating task with invalid type of subtitle', () => {
       return request(app.getHttpServer())
         .put('/tasks/1')
+        .set('Authorization', token)
         .send({ subtitle: 1 })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -233,6 +255,7 @@ describe('Tasks Module', () => {
     it('should fail updating task with invalid type of description', () => {
       return request(app.getHttpServer())
         .put('/tasks/1')
+        .set('Authorization', token)
         .send({ description: 1 })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -245,6 +268,7 @@ describe('Tasks Module', () => {
     it('should fail updating task with invalid type of imageURL', () => {
       return request(app.getHttpServer())
         .put('/tasks/1')
+        .set('Authorization', token)
         .send({ imageURL: 'imageURL' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -259,6 +283,7 @@ describe('Tasks Module', () => {
       const [databaseValue] = await repository.find({ take: 1 });
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
+        .set('Authorization', token)
         .send(update)
         .expect(HttpStatus.OK);
       const newDatabaseValue = await repository.findOne(databaseValue.id);
@@ -274,6 +299,7 @@ describe('Tasks Module', () => {
       const [databaseValue] = await repository.find({ take: 1 });
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
+        .set('Authorization', token)
         .send(update)
         .expect(HttpStatus.OK);
       const newDatabaseValue = await repository.findOne(databaseValue.id);
@@ -289,6 +315,7 @@ describe('Tasks Module', () => {
       const [databaseValue] = await repository.find({ take: 1 });
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
+        .set('Authorization', token)
         .send(update)
         .expect(HttpStatus.OK);
       const newDatabaseValue = await repository.findOne(databaseValue.id);
@@ -303,6 +330,7 @@ describe('Tasks Module', () => {
       databaseValue.imageURL = 'image-url.test';
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
+        .set('Authorization', token)
         .send(update)
         .expect(HttpStatus.OK);
       const newDatabaseValue = await repository.findOne(databaseValue.id);
@@ -317,6 +345,7 @@ describe('Tasks Module', () => {
       databaseValue.imageURL = null;
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
+        .set('Authorization', token)
         .send(update)
         .expect(HttpStatus.OK);
       const newDatabaseValue = await repository.findOne(databaseValue.id);
@@ -331,6 +360,7 @@ describe('Tasks Module', () => {
       const [databaseValue] = await repository.find({ take: 1 });
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
+        .set('Authorization', token)
         .send(update)
         .expect(HttpStatus.OK);
       const newDatabaseValue = await repository.findOne(databaseValue.id);
@@ -343,12 +373,13 @@ describe('Tasks Module', () => {
     it('should fail deleting task with not existing id', () => {
       return request(app.getHttpServer())
         .delete('/tasks/0')
+        .set('Authorization', token)
         .expect(HttpStatus.BAD_REQUEST)
         .expect({ message: 'Task Not Found' });
     });
 
     it('should successfully delete task', () => {
-      return request(app.getHttpServer()).delete('/tasks/1').expect(HttpStatus.OK);
+      return request(app.getHttpServer()).delete('/tasks/1').set('Authorization', token).expect(HttpStatus.OK);
     });
   });
 });
