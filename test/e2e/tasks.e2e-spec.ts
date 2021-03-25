@@ -135,6 +135,32 @@ describe('Tasks Module', () => {
         });
     });
 
+    it('should fail creating task with mandatory fields for non admin user', async () => {
+      const create: ITask = {
+        title: 'task 1',
+        subtitle: 'task 1',
+        description: 'task 1',
+      };
+      await request(app.getHttpServer())
+        .post('/tasks')
+        .set(GenerateHeader(true, false))
+        .send(create)
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
+    it('should fail creating task with mandatory fields without token', async () => {
+      const create: ITask = {
+        title: 'task 1',
+        subtitle: 'task 1',
+        description: 'task 1',
+      };
+      await request(app.getHttpServer())
+        .post('/tasks')
+        .set(GenerateHeader(false, true))
+        .send(create)
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
     it('should successfully create task with mandatory fields', async () => {
       const create: ITask = {
         title: 'task 1',
@@ -150,6 +176,34 @@ describe('Tasks Module', () => {
       const task = await repository.findOne(body.id);
       dataToCompare(create, task);
       dataToCompare(body, create);
+    });
+
+    it('should fail creating task with mandatory and optional fields for non admin user', async () => {
+      const create = {
+        title: 'task 1',
+        subtitle: 'task 1',
+        description: 'task 1',
+        imageURL: 'image-url.test',
+      };
+      await request(app.getHttpServer())
+        .post('/tasks')
+        .set(GenerateHeader(true, false))
+        .send(create)
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
+    it('should fail creating task with mandatory and optional fields without token', async () => {
+      const create = {
+        title: 'task 1',
+        subtitle: 'task 1',
+        description: 'task 1',
+        imageURL: 'image-url.test',
+      };
+      await request(app.getHttpServer())
+        .post('/tasks')
+        .set(GenerateHeader(false, true))
+        .send(create)
+        .expect(HttpStatus.UNAUTHORIZED);
     });
 
     it('should successfully create task with mandatory and optional fields', async () => {
@@ -194,7 +248,7 @@ describe('Tasks Module', () => {
       return request(app.getHttpServer())
         .get('/tasks/0')
         .expect(HttpStatus.OK)
-        .set(GenerateHeader(true, true))
+        .set(GenerateHeader(true, false))
         .then((data) => {
           expect(data.body).toBeNull();
         });
@@ -203,7 +257,7 @@ describe('Tasks Module', () => {
     it('should successfully get all tasks', async () => {
       const { body } = await request(app.getHttpServer())
         .get('/tasks')
-        .set(GenerateHeader(true, true))
+        .set(GenerateHeader(true, false))
         .expect(HttpStatus.OK);
 
       expect(body.length).toStrictEqual(tasks().length);
@@ -214,7 +268,7 @@ describe('Tasks Module', () => {
       const [databaseValue] = await repository.find({ take: 1 });
       const { body } = await request(app.getHttpServer())
         .get(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(true, true))
+        .set(GenerateHeader(true, false))
         .expect(HttpStatus.OK);
 
       dataToCompare(body, databaseValue);
@@ -281,6 +335,26 @@ describe('Tasks Module', () => {
           message: ['imageURL must be an URL address'],
           error: 'Bad Request',
         });
+    });
+
+    it('should fail updating task with valid type of title for non admin user', async () => {
+      const update = { title: 'new task 1.1' };
+      const [databaseValue] = await repository.find({ take: 1 });
+      await request(app.getHttpServer())
+        .put(`/tasks/${databaseValue.id}`)
+        .set(GenerateHeader(true, false))
+        .send(update)
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
+    it('should fail updating task with valid type of title without token', async () => {
+      const update = { title: 'new task 1.1' };
+      const [databaseValue] = await repository.find({ take: 1 });
+      await request(app.getHttpServer())
+        .put(`/tasks/${databaseValue.id}`)
+        .set(GenerateHeader(false, true))
+        .send(update)
+        .expect(HttpStatus.UNAUTHORIZED);
     });
 
     it('should successfully update task with valid type of title', async () => {
@@ -383,8 +457,28 @@ describe('Tasks Module', () => {
         .expect({ message: 'Task Not Found' });
     });
 
-    it('should successfully delete task', () => {
-      return request(app.getHttpServer()).delete('/tasks/1').set(GenerateHeader(true, true)).expect(HttpStatus.OK);
+    it('should fail deleting task for non admin user', async () => {
+      const [databaseValue] = await repository.find({ take: 1 });
+      await request(app.getHttpServer())
+        .delete(`/tasks/${databaseValue.id}`)
+        .set(GenerateHeader(true, false))
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
+    it('should fail deleting task without token', async () => {
+      const [databaseValue] = await repository.find({ take: 1 });
+      await request(app.getHttpServer())
+        .delete(`/tasks/${databaseValue.id}`)
+        .set(GenerateHeader(false, true))
+        .expect(HttpStatus.UNAUTHORIZED);
+    });
+
+    it('should successfully delete task', async () => {
+      const [databaseValue] = await repository.find({ take: 1 });
+      await request(app.getHttpServer())
+        .delete(`/tasks/${databaseValue.id}`)
+        .set(GenerateHeader(true, true))
+        .expect(HttpStatus.OK);
     });
   });
 });
