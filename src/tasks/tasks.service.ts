@@ -33,7 +33,9 @@ export default class TasksService {
       throw new Error('Task Not Found');
     }
 
-    await this.tasksRepository.update({ id }, { ...task });
+    if (Object.keys(task).length > 0) {
+      await this.tasksRepository.update({ id }, { ...task });
+    }
 
     return this.findTask(id);
   }

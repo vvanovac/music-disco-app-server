@@ -285,9 +285,10 @@ describe('Tasks Module', () => {
         .expect({ message: 'Task Not Found' });
     });
 
-    it('should fail updating task with invalid type of title', () => {
-      return request(app.getHttpServer())
-        .put('/tasks/1')
+    it('should fail updating task with invalid type of title', async () => {
+      const [databaseValue] = await repository.find({ take: 1 });
+      await request(app.getHttpServer())
+        .put(`/tasks/${databaseValue.id}`)
         .set(GenerateHeader(true, true))
         .send({ title: 1 })
         .expect(HttpStatus.BAD_REQUEST)
@@ -298,9 +299,10 @@ describe('Tasks Module', () => {
         });
     });
 
-    it('should fail updating task with invalid type of subtitle', () => {
-      return request(app.getHttpServer())
-        .put('/tasks/1')
+    it('should fail updating task with invalid type of subtitle', async () => {
+      const [databaseValue] = await repository.find({ take: 1 });
+      await request(app.getHttpServer())
+        .put(`/tasks/${databaseValue.id}`)
         .set(GenerateHeader(true, true))
         .send({ subtitle: 1 })
         .expect(HttpStatus.BAD_REQUEST)
@@ -311,9 +313,10 @@ describe('Tasks Module', () => {
         });
     });
 
-    it('should fail updating task with invalid type of description', () => {
-      return request(app.getHttpServer())
-        .put('/tasks/1')
+    it('should fail updating task with invalid type of description', async () => {
+      const [databaseValue] = await repository.find({ take: 1 });
+      await request(app.getHttpServer())
+        .put(`/tasks/${databaseValue.id}`)
         .set(GenerateHeader(true, true))
         .send({ description: 1 })
         .expect(HttpStatus.BAD_REQUEST)
@@ -324,9 +327,10 @@ describe('Tasks Module', () => {
         });
     });
 
-    it('should fail updating task with invalid type of imageURL', () => {
-      return request(app.getHttpServer())
-        .put('/tasks/1')
+    it('should fail updating task with invalid type of imageURL', async () => {
+      const [databaseValue] = await repository.find({ take: 1 });
+      await request(app.getHttpServer())
+        .put(`/tasks/${databaseValue.id}`)
         .set(GenerateHeader(true, true))
         .send({ imageURL: 'imageURL' })
         .expect(HttpStatus.BAD_REQUEST)
