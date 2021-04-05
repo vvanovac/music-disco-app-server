@@ -3,7 +3,7 @@ import { Repository } from 'typeorm';
 import * as request from 'supertest';
 
 import Tasks from '../../src/tasks/tasks.entity';
-import ITask from '../../src/tasks/task.interface';
+import { ITask } from '../../src/tasks/task.interface';
 import { GenerateSeed, GenerateToken, RemoveSeed, StartServer, StopServer } from '../helpers/common.functions';
 import { tasks } from '../helpers/seed.data';
 

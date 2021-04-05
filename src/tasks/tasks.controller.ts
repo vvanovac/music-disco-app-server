@@ -1,15 +1,18 @@
-import { Body, Param, Controller, HttpStatus, Post, Get, Put, Delete, Res, UseGuards } from '@nestjs/common';
+import { Body, Param, Controller, HttpStatus, Post, Get, Put, Delete, Res, UseGuards, Inject } from '@nestjs/common';
 
-import TasksService from './tasks.service';
 import { CreateTaskDto, UpdateTaskDto } from './task.dto';
-import ITask from './task.interface';
+import { ITask, ITaskService } from './task.interface';
 import { JwtAuthGuard } from '../authentication/jwt.auth.guard';
 import { AUTH_GUARD_TYPES_ENUM } from '../common/constants';
+import { I_TASK_SERVICE } from './task.constants';
 
 @UseGuards(JwtAuthGuard)
 @Controller('tasks')
 export default class TasksController {
-  constructor(private tasksService: TasksService) {}
+  constructor(
+    @Inject(I_TASK_SERVICE)
+    private readonly tasksService: ITaskService,
+  ) {}
 
   @UseGuards(new JwtAuthGuard(AUTH_GUARD_TYPES_ENUM.ADMIN))
   @Post()

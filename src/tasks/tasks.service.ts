@@ -3,10 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Tasks from './tasks.entity';
 import { UpdateTaskDto } from './task.dto';
-import ITask from './task.interface';
+import { ITask, ITaskService } from './task.interface';
 
 @Injectable()
-export default class TasksService {
+export default class TasksService implements ITaskService {
   constructor(
     @InjectRepository(Tasks)
     private tasksRepository: Repository<Tasks>,
@@ -19,7 +19,7 @@ export default class TasksService {
   }
 
   async findTasks(): Promise<ITask[]> {
-    return await this.tasksRepository.find();
+    return await this.tasksRepository.find({ order: { id: 'ASC' } });
   }
 
   async findTask(id: number): Promise<ITask> {
