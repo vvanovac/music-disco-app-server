@@ -32,12 +32,12 @@ export const tasks = () => [
     title: 'test 1',
     subtitle: 'test 1',
     description: 'test 1',
-    imageURL: 'image-url.test',
+    musicNotes: ['A', 'B', 'C'],
   },
   {
     title: 'test 2',
     subtitle: 'test 2',
     description: 'test 2',
-    imageURL: 'image-url.test',
+    musicNotes: ['D', 'E'],
   },
 ];

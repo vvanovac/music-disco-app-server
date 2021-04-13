@@ -51,12 +51,7 @@ export const RemoveSeed = async (tablesToRemove: string[]) => {
 };
 
 export const GenerateToken = (isAdmin: boolean) => {
-  let user;
-  if (!isAdmin) {
-    [user] = SeedData.users(false);
-  }
-  if (isAdmin) {
-    user = SeedData.users(false)[1];
-  }
+  const [nonAdminUser, adminUser] = SeedData.users(false);
+  const user = isAdmin ? adminUser : nonAdminUser;
   return new JwtService({ secret: jwt.secret, signOptions: { expiresIn: jwt.expiresIn } }).sign(user);
 };

@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsArray, IsOptional, IsString } from 'class-validator';
 
 export class CreateTaskDto {
   @IsString()
@@ -10,9 +10,8 @@ export class CreateTaskDto {
   @IsString()
   description: string;
 
-  @IsUrl()
-  @IsOptional()
-  imageURL: string;
+  @IsArray()
+  musicNotes: string[];
 }
 
 export class UpdateTaskDto {
@@ -28,7 +27,7 @@ export class UpdateTaskDto {
   @IsOptional()
   description: string;
 
-  @IsUrl()
+  @IsArray()
   @IsOptional()
-  imageURL: string;
+  musicNotes: string[];
 }

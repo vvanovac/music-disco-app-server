@@ -5,7 +5,7 @@ export interface ITask {
   readonly title: string;
   readonly subtitle: string;
   readonly description: string;
-  imageURL?: string;
+  readonly musicNotes: string[];
 }
 
 export interface ITaskService {

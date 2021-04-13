@@ -43,7 +43,7 @@ describe('Tasks Module', () => {
       return request(app.getHttpServer())
         .post('/tasks')
         .set(GenerateHeader(true, true))
-        .send({ subtitle: 'task 1', description: 'task 1' })
+        .send({ subtitle: 'task 1', description: 'task 1', musicNotes: ['C', 'D', 'E'] })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
@@ -56,7 +56,7 @@ describe('Tasks Module', () => {
       return request(app.getHttpServer())
         .post('/tasks')
         .set(GenerateHeader(true, true))
-        .send({ title: 1, subtitle: 'task 1', description: 'task 1' })
+        .send({ title: 1, subtitle: 'task 1', description: 'task 1', musicNotes: ['C', 'D', 'E'] })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
@@ -69,7 +69,7 @@ describe('Tasks Module', () => {
       return request(app.getHttpServer())
         .post('/tasks')
         .set(GenerateHeader(true, true))
-        .send({ title: 'task 1', description: 'task 1' })
+        .send({ title: 'task 1', description: 'task 1', musicNotes: ['C', 'D', 'E'] })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
@@ -82,7 +82,7 @@ describe('Tasks Module', () => {
       return request(app.getHttpServer())
         .post('/tasks')
         .set(GenerateHeader(true, true))
-        .send({ title: 'task 1', subtitle: 1, description: 'task 1' })
+        .send({ title: 'task 1', subtitle: 1, description: 'task 1', musicNotes: ['C', 'D', 'E'] })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
@@ -95,7 +95,7 @@ describe('Tasks Module', () => {
       return request(app.getHttpServer())
         .post('/tasks')
         .set(GenerateHeader(true, true))
-        .send({ title: 'task 1', subtitle: 'task 1' })
+        .send({ title: 'task 1', subtitle: 'task 1', musicNotes: ['C', 'D', 'E'] })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
@@ -108,7 +108,7 @@ describe('Tasks Module', () => {
       return request(app.getHttpServer())
         .post('/tasks')
         .set(GenerateHeader(true, true))
-        .send({ title: 'task 1', subtitle: 'task 1', description: 1 })
+        .send({ title: 'task 1', subtitle: 'task 1', description: 1, musicNotes: ['C', 'D', 'E'] })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
@@ -117,7 +117,20 @@ describe('Tasks Module', () => {
         });
     });
 
-    it('should fail creating task with invalid type of imageURL', () => {
+    it('should fail creating task with missing musicNotes', () => {
+      return request(app.getHttpServer())
+        .post('/tasks')
+        .set(GenerateHeader(true, true))
+        .send({ title: 'task 1', subtitle: 'task 1', description: 'task 1' })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: ['musicNotes must be an array'],
+          error: 'Bad Request',
+        });
+    });
+
+    it('should fail creating task with invalid type of musicNotes', () => {
       return request(app.getHttpServer())
         .post('/tasks')
         .set(GenerateHeader(true, true))
@@ -125,21 +138,22 @@ describe('Tasks Module', () => {
           title: 'task 1',
           subtitle: 'task 1',
           description: 'task 1',
-          imageURL: 'imageURL',
+          musicNotes: 'C, D, E',
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
-          message: ['imageURL must be an URL address'],
+          message: ['musicNotes must be an array'],
           error: 'Bad Request',
         });
     });
 
-    it('should fail creating task with mandatory fields for non admin user', async () => {
+    it('should fail creating task for non admin user', async () => {
       const create: ITask = {
         title: 'task 1',
         subtitle: 'task 1',
         description: 'task 1',
+        musicNotes: ['C', 'D', 'E'],
       };
       await request(app.getHttpServer())
         .post('/tasks')
@@ -148,11 +162,12 @@ describe('Tasks Module', () => {
         .expect(HttpStatus.UNAUTHORIZED);
     });
 
-    it('should fail creating task with mandatory fields without token', async () => {
+    it('should fail creating task without token', async () => {
       const create: ITask = {
         title: 'task 1',
         subtitle: 'task 1',
         description: 'task 1',
+        musicNotes: ['C', 'D', 'E'],
       };
       await request(app.getHttpServer())
         .post('/tasks')
@@ -161,328 +176,234 @@ describe('Tasks Module', () => {
         .expect(HttpStatus.UNAUTHORIZED);
     });
 
-    it('should successfully create task with mandatory fields', async () => {
+    it('should successfully create task', async () => {
       const create: ITask = {
         title: 'task 1',
         subtitle: 'task 1',
         description: 'task 1',
+        musicNotes: ['C', 'D', 'E'],
       };
       const { body } = await request(app.getHttpServer())
         .post('/tasks')
         .set(GenerateHeader(true, true))
         .send(create)
         .expect(HttpStatus.CREATED);
-      create.imageURL = null;
       const task = await repository.findOne(body.id);
       dataToCompare(create, task);
       dataToCompare(body, create);
     });
 
-    it('should fail creating task with mandatory and optional fields for non admin user', async () => {
-      const create = {
-        title: 'task 1',
-        subtitle: 'task 1',
-        description: 'task 1',
-        imageURL: 'image-url.test',
-      };
-      await request(app.getHttpServer())
-        .post('/tasks')
-        .set(GenerateHeader(true, false))
-        .send(create)
-        .expect(HttpStatus.UNAUTHORIZED);
+    describe('While testing reading task flows', () => {
+      it('should fail getting one task with not existing id', () => {
+        return request(app.getHttpServer())
+          .get('/tasks/0')
+          .expect(HttpStatus.OK)
+          .set(GenerateHeader(true, false))
+          .then((data) => {
+            expect(data.body).toBeNull();
+          });
+      });
+
+      it('should successfully get all tasks', async () => {
+        const { body } = await request(app.getHttpServer())
+          .get('/tasks')
+          .set(GenerateHeader(true, false))
+          .expect(HttpStatus.OK);
+
+        expect(body.length).toStrictEqual(tasks().length);
+        body.forEach((bodyData, index) => dataToCompare(bodyData, tasks()[index]));
+      });
+
+      it('should successfully get one task', async () => {
+        const [databaseValue] = await repository.find({ take: 1 });
+        const { body } = await request(app.getHttpServer())
+          .get(`/tasks/${databaseValue.id}`)
+          .set(GenerateHeader(true, false))
+          .expect(HttpStatus.OK);
+
+        dataToCompare(body, databaseValue);
+        expect(body.id).toStrictEqual(databaseValue.id);
+      });
     });
 
-    it('should fail creating task with mandatory and optional fields without token', async () => {
-      const create = {
-        title: 'task 1',
-        subtitle: 'task 1',
-        description: 'task 1',
-        imageURL: 'image-url.test',
-      };
-      await request(app.getHttpServer())
-        .post('/tasks')
-        .set(GenerateHeader(false, true))
-        .send(create)
-        .expect(HttpStatus.UNAUTHORIZED);
+    describe('While testing updating task flows', () => {
+      it('should fail updating task with not existing id', () => {
+        return request(app.getHttpServer())
+          .put('/tasks/0')
+          .set(GenerateHeader(true, true))
+          .expect(HttpStatus.BAD_REQUEST)
+          .expect({ message: 'Task Not Found' });
+      });
+
+      it('should fail updating task with invalid type of title', async () => {
+        const [databaseValue] = await repository.find({ take: 1 });
+        await request(app.getHttpServer())
+          .put(`/tasks/${databaseValue.id}`)
+          .set(GenerateHeader(true, true))
+          .send({ title: 1 })
+          .expect(HttpStatus.BAD_REQUEST)
+          .expect({
+            statusCode: 400,
+            message: ['title must be a string'],
+            error: 'Bad Request',
+          });
+      });
+
+      it('should fail updating task with invalid type of subtitle', async () => {
+        const [databaseValue] = await repository.find({ take: 1 });
+        await request(app.getHttpServer())
+          .put(`/tasks/${databaseValue.id}`)
+          .set(GenerateHeader(true, true))
+          .send({ subtitle: 1 })
+          .expect(HttpStatus.BAD_REQUEST)
+          .expect({
+            statusCode: 400,
+            message: ['subtitle must be a string'],
+            error: 'Bad Request',
+          });
+      });
+
+      it('should fail updating task with invalid type of description', async () => {
+        const [databaseValue] = await repository.find({ take: 1 });
+        await request(app.getHttpServer())
+          .put(`/tasks/${databaseValue.id}`)
+          .set(GenerateHeader(true, true))
+          .send({ description: 1 })
+          .expect(HttpStatus.BAD_REQUEST)
+          .expect({
+            statusCode: 400,
+            message: ['description must be a string'],
+            error: 'Bad Request',
+          });
+      });
+
+      it('should fail updating task with invalid type of musicNotes', async () => {
+        const [databaseValue] = await repository.find({ take: 1 });
+        await request(app.getHttpServer())
+          .put(`/tasks/${databaseValue.id}`)
+          .set(GenerateHeader(true, true))
+          .send({ musicNotes: 'C D E' })
+          .expect(HttpStatus.BAD_REQUEST)
+          .expect({
+            statusCode: 400,
+            message: ['musicNotes must be an array'],
+            error: 'Bad Request',
+          });
+      });
+
+      it('should fail updating task with valid type of title for non admin user', async () => {
+        const update = { title: 'new task 1.1' };
+        const [databaseValue] = await repository.find({ take: 1 });
+        await request(app.getHttpServer())
+          .put(`/tasks/${databaseValue.id}`)
+          .set(GenerateHeader(true, false))
+          .send(update)
+          .expect(HttpStatus.UNAUTHORIZED);
+      });
+
+      it('should fail updating task with valid type of title without token', async () => {
+        const update = { title: 'new task 1.1' };
+        const [databaseValue] = await repository.find({ take: 1 });
+        await request(app.getHttpServer())
+          .put(`/tasks/${databaseValue.id}`)
+          .set(GenerateHeader(false, true))
+          .send(update)
+          .expect(HttpStatus.UNAUTHORIZED);
+      });
+
+      it('should successfully update task with valid type of title', async () => {
+        const update = { title: 'new task 1.1' };
+        const [databaseValue] = await repository.find({ take: 1 });
+        const { body } = await request(app.getHttpServer())
+          .put(`/tasks/${databaseValue.id}`)
+          .set(GenerateHeader(true, true))
+          .send(update)
+          .expect(HttpStatus.OK);
+        const newDatabaseValue = await repository.findOne(databaseValue.id);
+        dataToCompare(body, newDatabaseValue);
+        dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
+      });
+
+      it('should successfully update task with valid type of subtitle', async () => {
+        const update = {
+          title: 'new task 1.1',
+          subtitle: 'new task 1.2',
+        };
+        const [databaseValue] = await repository.find({ take: 1 });
+        const { body } = await request(app.getHttpServer())
+          .put(`/tasks/${databaseValue.id}`)
+          .set(GenerateHeader(true, true))
+          .send(update)
+          .expect(HttpStatus.OK);
+        const newDatabaseValue = await repository.findOne(databaseValue.id);
+        dataToCompare(body, newDatabaseValue);
+        dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
+      });
+
+      it('should successfully update task with valid type of description', async () => {
+        const update = {
+          description: 'new task 1.3',
+          subtitle: 'new task 1.3',
+        };
+        const [databaseValue] = await repository.find({ take: 1 });
+        const { body } = await request(app.getHttpServer())
+          .put(`/tasks/${databaseValue.id}`)
+          .set(GenerateHeader(true, true))
+          .send(update)
+          .expect(HttpStatus.OK);
+        const newDatabaseValue = await repository.findOne(databaseValue.id);
+        dataToCompare(body, newDatabaseValue);
+        dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
+      });
+
+      it('should successfully update task with valid type of musicNotes', async () => {
+        const update = { musicNotes: ['A', 'B', 'F'] };
+        const [databaseValue] = await repository.find({ take: 1 });
+        await repository.update({ id: databaseValue.id }, { musicNotes: ['A', 'B', 'F'] });
+        databaseValue.musicNotes = ['A', 'B', 'F'];
+        const { body } = await request(app.getHttpServer())
+          .put(`/tasks/${databaseValue.id}`)
+          .set(GenerateHeader(true, true))
+          .send(update)
+          .expect(HttpStatus.OK);
+        const newDatabaseValue = await repository.findOne(databaseValue.id);
+        dataToCompare(body, newDatabaseValue);
+        dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
+      });
     });
 
-    it('should successfully create task with mandatory and optional fields', async () => {
-      const create = {
-        title: 'task 1',
-        subtitle: 'task 1',
-        description: 'task 1',
-        imageURL: 'image-url.test',
-      };
-      const { body } = await request(app.getHttpServer())
-        .post('/tasks')
-        .set(GenerateHeader(true, true))
-        .send(create)
-        .expect(HttpStatus.CREATED);
+    describe('While testing deleting task flows', () => {
+      it('should fail deleting task with not existing id', () => {
+        return request(app.getHttpServer())
+          .delete('/tasks/0')
+          .set(GenerateHeader(true, true))
+          .expect(HttpStatus.BAD_REQUEST)
+          .expect({ message: 'Task Not Found' });
+      });
 
-      const task = await repository.findOne(body.id);
-      dataToCompare(create, task);
-      dataToCompare(body, create);
-    });
+      it('should fail deleting task for non admin user', async () => {
+        const [databaseValue] = await repository.find({ take: 1 });
+        await request(app.getHttpServer())
+          .delete(`/tasks/${databaseValue.id}`)
+          .set(GenerateHeader(true, false))
+          .expect(HttpStatus.UNAUTHORIZED);
+      });
 
-    it('should successfully create task with mandatory and optional fields', async () => {
-      const create = {
-        title: 'task 1',
-        subtitle: 'task 1',
-        description: 'task 1',
-        imageURL: null,
-      };
-      const { body } = await request(app.getHttpServer())
-        .post('/tasks')
-        .set(GenerateHeader(true, true))
-        .send(create)
-        .expect(HttpStatus.CREATED);
+      it('should fail deleting task without token', async () => {
+        const [databaseValue] = await repository.find({ take: 1 });
+        await request(app.getHttpServer())
+          .delete(`/tasks/${databaseValue.id}`)
+          .set(GenerateHeader(false, true))
+          .expect(HttpStatus.UNAUTHORIZED);
+      });
 
-      const task = await repository.findOne(body.id);
-      dataToCompare(create, task);
-      dataToCompare(body, create);
-    });
-  });
-
-  describe('While testing reading task flows', () => {
-    it('should fail getting one task with not existing id', () => {
-      return request(app.getHttpServer())
-        .get('/tasks/0')
-        .expect(HttpStatus.OK)
-        .set(GenerateHeader(true, false))
-        .then((data) => {
-          expect(data.body).toBeNull();
-        });
-    });
-
-    it('should successfully get all tasks', async () => {
-      const { body } = await request(app.getHttpServer())
-        .get('/tasks')
-        .set(GenerateHeader(true, false))
-        .expect(HttpStatus.OK);
-
-      expect(body.length).toStrictEqual(tasks().length);
-      body.forEach((bodyData, index) => dataToCompare(bodyData, tasks()[index]));
-    });
-
-    it('should successfully get one task', async () => {
-      const [databaseValue] = await repository.find({ take: 1 });
-      const { body } = await request(app.getHttpServer())
-        .get(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(true, false))
-        .expect(HttpStatus.OK);
-
-      dataToCompare(body, databaseValue);
-      expect(body.id).toStrictEqual(databaseValue.id);
-    });
-  });
-
-  describe('While testing updating task flows', () => {
-    it('should fail updating task with not existing id', () => {
-      return request(app.getHttpServer())
-        .put('/tasks/0')
-        .set(GenerateHeader(true, true))
-        .expect(HttpStatus.BAD_REQUEST)
-        .expect({ message: 'Task Not Found' });
-    });
-
-    it('should fail updating task with invalid type of title', async () => {
-      const [databaseValue] = await repository.find({ take: 1 });
-      await request(app.getHttpServer())
-        .put(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(true, true))
-        .send({ title: 1 })
-        .expect(HttpStatus.BAD_REQUEST)
-        .expect({
-          statusCode: 400,
-          message: ['title must be a string'],
-          error: 'Bad Request',
-        });
-    });
-
-    it('should fail updating task with invalid type of subtitle', async () => {
-      const [databaseValue] = await repository.find({ take: 1 });
-      await request(app.getHttpServer())
-        .put(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(true, true))
-        .send({ subtitle: 1 })
-        .expect(HttpStatus.BAD_REQUEST)
-        .expect({
-          statusCode: 400,
-          message: ['subtitle must be a string'],
-          error: 'Bad Request',
-        });
-    });
-
-    it('should fail updating task with invalid type of description', async () => {
-      const [databaseValue] = await repository.find({ take: 1 });
-      await request(app.getHttpServer())
-        .put(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(true, true))
-        .send({ description: 1 })
-        .expect(HttpStatus.BAD_REQUEST)
-        .expect({
-          statusCode: 400,
-          message: ['description must be a string'],
-          error: 'Bad Request',
-        });
-    });
-
-    it('should fail updating task with invalid type of imageURL', async () => {
-      const [databaseValue] = await repository.find({ take: 1 });
-      await request(app.getHttpServer())
-        .put(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(true, true))
-        .send({ imageURL: 'imageURL' })
-        .expect(HttpStatus.BAD_REQUEST)
-        .expect({
-          statusCode: 400,
-          message: ['imageURL must be an URL address'],
-          error: 'Bad Request',
-        });
-    });
-
-    it('should fail updating task with valid type of title for non admin user', async () => {
-      const update = { title: 'new task 1.1' };
-      const [databaseValue] = await repository.find({ take: 1 });
-      await request(app.getHttpServer())
-        .put(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(true, false))
-        .send(update)
-        .expect(HttpStatus.UNAUTHORIZED);
-    });
-
-    it('should fail updating task with valid type of title without token', async () => {
-      const update = { title: 'new task 1.1' };
-      const [databaseValue] = await repository.find({ take: 1 });
-      await request(app.getHttpServer())
-        .put(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(false, true))
-        .send(update)
-        .expect(HttpStatus.UNAUTHORIZED);
-    });
-
-    it('should successfully update task with valid type of title', async () => {
-      const update = { title: 'new task 1.1' };
-      const [databaseValue] = await repository.find({ take: 1 });
-      const { body } = await request(app.getHttpServer())
-        .put(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(true, true))
-        .send(update)
-        .expect(HttpStatus.OK);
-      const newDatabaseValue = await repository.findOne(databaseValue.id);
-      dataToCompare(body, newDatabaseValue);
-      dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
-    });
-
-    it('should successfully update task with valid type of subtitle', async () => {
-      const update = {
-        title: 'new task 1.1',
-        subtitle: 'new task 1.2',
-      };
-      const [databaseValue] = await repository.find({ take: 1 });
-      const { body } = await request(app.getHttpServer())
-        .put(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(true, true))
-        .send(update)
-        .expect(HttpStatus.OK);
-      const newDatabaseValue = await repository.findOne(databaseValue.id);
-      dataToCompare(body, newDatabaseValue);
-      dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
-    });
-
-    it('should successfully update task with valid type of description', async () => {
-      const update = {
-        description: 'new task 1.3',
-        subtitle: 'new task 1.3',
-      };
-      const [databaseValue] = await repository.find({ take: 1 });
-      const { body } = await request(app.getHttpServer())
-        .put(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(true, true))
-        .send(update)
-        .expect(HttpStatus.OK);
-      const newDatabaseValue = await repository.findOne(databaseValue.id);
-      dataToCompare(body, newDatabaseValue);
-      dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
-    });
-
-    it('should successfully set imageURL from string to null', async () => {
-      const update = { imageURL: null };
-      const [databaseValue] = await repository.find({ take: 1 });
-      await repository.update({ id: databaseValue.id }, { imageURL: 'image-url.test' });
-      databaseValue.imageURL = 'image-url.test';
-      const { body } = await request(app.getHttpServer())
-        .put(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(true, true))
-        .send(update)
-        .expect(HttpStatus.OK);
-      const newDatabaseValue = await repository.findOne(databaseValue.id);
-      dataToCompare(body, newDatabaseValue);
-      dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
-    });
-
-    it('should successfully set imageURL from null to null', async () => {
-      const update = { imageURL: null };
-      const [databaseValue] = await repository.find({ take: 1 });
-      await repository.update({ id: databaseValue.id }, { imageURL: null });
-      databaseValue.imageURL = null;
-      const { body } = await request(app.getHttpServer())
-        .put(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(true, true))
-        .send(update)
-        .expect(HttpStatus.OK);
-      const newDatabaseValue = await repository.findOne(databaseValue.id);
-      dataToCompare(body, newDatabaseValue);
-      dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
-    });
-
-    it('should successfully update task with valid type of imageURL', async () => {
-      const update = {
-        imageURL: 'new-image-url.test',
-      };
-      const [databaseValue] = await repository.find({ take: 1 });
-      const { body } = await request(app.getHttpServer())
-        .put(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(true, true))
-        .send(update)
-        .expect(HttpStatus.OK);
-      const newDatabaseValue = await repository.findOne(databaseValue.id);
-      dataToCompare(body, newDatabaseValue);
-      dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
-    });
-  });
-
-  describe('While testing deleting task flows', () => {
-    it('should fail deleting task with not existing id', () => {
-      return request(app.getHttpServer())
-        .delete('/tasks/0')
-        .set(GenerateHeader(true, true))
-        .expect(HttpStatus.BAD_REQUEST)
-        .expect({ message: 'Task Not Found' });
-    });
-
-    it('should fail deleting task for non admin user', async () => {
-      const [databaseValue] = await repository.find({ take: 1 });
-      await request(app.getHttpServer())
-        .delete(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(true, false))
-        .expect(HttpStatus.UNAUTHORIZED);
-    });
-
-    it('should fail deleting task without token', async () => {
-      const [databaseValue] = await repository.find({ take: 1 });
-      await request(app.getHttpServer())
-        .delete(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(false, true))
-        .expect(HttpStatus.UNAUTHORIZED);
-    });
-
-    it('should successfully delete task', async () => {
-      const [databaseValue] = await repository.find({ take: 1 });
-      await request(app.getHttpServer())
-        .delete(`/tasks/${databaseValue.id}`)
-        .set(GenerateHeader(true, true))
-        .expect(HttpStatus.OK);
+      it('should successfully delete task', async () => {
+        const [databaseValue] = await repository.find({ take: 1 });
+        await request(app.getHttpServer())
+          .delete(`/tasks/${databaseValue.id}`)
+          .set(GenerateHeader(true, true))
+          .expect(HttpStatus.OK);
+      });
     });
   });
 });
