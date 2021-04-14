@@ -1,3 +1,5 @@
+import { MUSIC_NOTES_ENUM } from '../../src/common/constants';
+
 export const users = (excludePassword = true) =>
   [
     {
@@ -32,12 +34,12 @@ export const tasks = () => [
     title: 'test 1',
     subtitle: 'test 1',
     description: 'test 1',
-    musicNotes: ['A', 'B', 'C'],
+    musicNotes: [MUSIC_NOTES_ENUM.C2, MUSIC_NOTES_ENUM.D2, MUSIC_NOTES_ENUM.E2],
   },
   {
     title: 'test 2',
     subtitle: 'test 2',
     description: 'test 2',
-    musicNotes: ['D', 'E'],
+    musicNotes: [MUSIC_NOTES_ENUM.D2, MUSIC_NOTES_ENUM.E2],
   },
 ];

@@ -13,6 +13,9 @@ export default class TasksService implements ITaskService {
   ) {}
 
   async createTask(task: ITask): Promise<ITask> {
+    if (task.musicNotes.length === 0) {
+      throw new Error('musicNotes must not be an empty array');
+    }
     const inserted = await this.tasksRepository.insert(task);
 
     return this.findTask(inserted.raw[0].id);
@@ -46,8 +49,7 @@ export default class TasksService implements ITaskService {
     if (!task) {
       throw new Error('Task Not Found');
     }
-
-    await this.tasksRepository.delete(task);
+    await this.tasksRepository.delete({ id: task.id });
 
     return task;
   }

@@ -1,4 +1,5 @@
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsEnum, IsOptional, IsString } from 'class-validator';
+import { MUSIC_NOTES_ENUM } from '../common/constants';
 
 export class CreateTaskDto {
   @IsString()
@@ -11,7 +12,8 @@ export class CreateTaskDto {
   description: string;
 
   @IsArray()
-  musicNotes: string[];
+  @IsEnum(MUSIC_NOTES_ENUM, { each: true })
+  musicNotes: MUSIC_NOTES_ENUM[];
 }
 
 export class UpdateTaskDto {
@@ -29,5 +31,6 @@ export class UpdateTaskDto {
 
   @IsArray()
   @IsOptional()
-  musicNotes: string[];
+  @IsEnum(MUSIC_NOTES_ENUM, { each: true })
+  musicNotes: MUSIC_NOTES_ENUM[];
 }

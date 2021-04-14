@@ -1,11 +1,12 @@
 import { UpdateTaskDto } from './task.dto';
+import { MUSIC_NOTES_ENUM } from '../common/constants';
 
 export interface ITask {
   readonly id?: number;
   readonly title: string;
   readonly subtitle: string;
   readonly description: string;
-  readonly musicNotes: string[];
+  readonly musicNotes: MUSIC_NOTES_ENUM[];
 }
 
 export interface ITaskService {

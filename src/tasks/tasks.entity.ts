@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { MUSIC_NOTES_ENUM } from '../common/constants';
 
 @Entity()
 export default class Tasks {
@@ -14,6 +15,6 @@ export default class Tasks {
   @Column({ type: 'varchar' })
   description: string;
 
-  @Column({ type: 'varchar', array: true })
-  musicNotes: string[];
+  @Column({ type: 'json' })
+  musicNotes: MUSIC_NOTES_ENUM[];
 }
