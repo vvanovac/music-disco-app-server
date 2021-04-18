@@ -1,5 +1,5 @@
 import { UpdateTaskDto } from './task.dto';
-import { MUSIC_NOTES_ENUM } from '../common/constants';
+import { MUSIC_NOTES_ENUM, OCTAVE_ENUM } from '../common/constants';
 
 export interface ITask {
   readonly id?: number;
@@ -7,6 +7,7 @@ export interface ITask {
   readonly subtitle: string;
   readonly description: string;
   readonly musicNotes: MUSIC_NOTES_ENUM[];
+  readonly octave: OCTAVE_ENUM;
 }
 
 export interface ITaskService {

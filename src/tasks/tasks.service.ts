@@ -13,9 +13,6 @@ export default class TasksService implements ITaskService {
   ) {}
 
   async createTask(task: ITask): Promise<ITask> {
-    if (task.musicNotes.length === 0) {
-      throw new Error('musicNotes must not be an empty array');
-    }
     const inserted = await this.tasksRepository.insert(task);
 
     return this.findTask(inserted.raw[0].id);

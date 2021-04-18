@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { MUSIC_NOTES_ENUM } from '../common/constants';
+import { MUSIC_NOTES_ENUM, OCTAVE_ENUM } from '../common/constants';
 
 @Entity()
 export default class Tasks {
@@ -17,4 +17,7 @@ export default class Tasks {
 
   @Column({ type: 'json' })
   musicNotes: MUSIC_NOTES_ENUM[];
+
+  @Column({ type: 'json' })
+  octave: OCTAVE_ENUM;
 }

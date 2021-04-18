@@ -6,7 +6,7 @@ import Tasks from '../../src/tasks/tasks.entity';
 import { ITask } from '../../src/tasks/task.interface';
 import { GenerateSeed, GenerateToken, RemoveSeed, StartServer, StopServer } from '../helpers/common.functions';
 import { tasks } from '../helpers/seed.data';
-import { MUSIC_NOTES_ENUM } from '../../src/common/constants';
+import { MUSIC_NOTES_ENUM, OCTAVE_ENUM } from '../../src/common/constants';
 
 const dataToCompare = (expected, received) => {
   expect(expected.title).toStrictEqual(received.title);
@@ -47,7 +47,8 @@ describe('Tasks Module', () => {
         .send({
           subtitle: 'task 1',
           description: 'task 1',
-          musicNotes: [MUSIC_NOTES_ENUM.C2, MUSIC_NOTES_ENUM.D2, MUSIC_NOTES_ENUM.E2],
+          musicNotes: [MUSIC_NOTES_ENUM.C, MUSIC_NOTES_ENUM.D, MUSIC_NOTES_ENUM.E],
+          octave: OCTAVE_ENUM.FOUR,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -65,7 +66,8 @@ describe('Tasks Module', () => {
           title: 1,
           subtitle: 'task 1',
           description: 'task 1',
-          musicNotes: [MUSIC_NOTES_ENUM.C2, MUSIC_NOTES_ENUM.D2, MUSIC_NOTES_ENUM.E2],
+          musicNotes: [MUSIC_NOTES_ENUM.C, MUSIC_NOTES_ENUM.D, MUSIC_NOTES_ENUM.E],
+          octave: OCTAVE_ENUM.FOUR,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -82,7 +84,8 @@ describe('Tasks Module', () => {
         .send({
           title: 'task 1',
           description: 'task 1',
-          musicNotes: [MUSIC_NOTES_ENUM.C2, MUSIC_NOTES_ENUM.D2, MUSIC_NOTES_ENUM.E2],
+          musicNotes: [MUSIC_NOTES_ENUM.C, MUSIC_NOTES_ENUM.D, MUSIC_NOTES_ENUM.E],
+          octave: OCTAVE_ENUM.FOUR,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -100,7 +103,8 @@ describe('Tasks Module', () => {
           title: 'task 1',
           subtitle: 1,
           description: 'task 1',
-          musicNotes: [MUSIC_NOTES_ENUM.C2, MUSIC_NOTES_ENUM.D2, MUSIC_NOTES_ENUM.E2],
+          musicNotes: [MUSIC_NOTES_ENUM.C, MUSIC_NOTES_ENUM.D, MUSIC_NOTES_ENUM.E],
+          octave: OCTAVE_ENUM.FOUR,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -117,7 +121,8 @@ describe('Tasks Module', () => {
         .send({
           title: 'task 1',
           subtitle: 'task 1',
-          musicNotes: [MUSIC_NOTES_ENUM.C2, MUSIC_NOTES_ENUM.D2, MUSIC_NOTES_ENUM.E2],
+          musicNotes: [MUSIC_NOTES_ENUM.C, MUSIC_NOTES_ENUM.D, MUSIC_NOTES_ENUM.E],
+          octave: OCTAVE_ENUM.FOUR,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -135,7 +140,8 @@ describe('Tasks Module', () => {
           title: 'task 1',
           subtitle: 'task 1',
           description: 1,
-          musicNotes: [MUSIC_NOTES_ENUM.C2, MUSIC_NOTES_ENUM.D2, MUSIC_NOTES_ENUM.E2],
+          musicNotes: [MUSIC_NOTES_ENUM.C, MUSIC_NOTES_ENUM.D, MUSIC_NOTES_ENUM.E],
+          octave: OCTAVE_ENUM.FOUR,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -149,11 +155,15 @@ describe('Tasks Module', () => {
       return request(app.getHttpServer())
         .post('/tasks')
         .set(GenerateHeader(true, true))
-        .send({ title: 'task 1', subtitle: 'task 1', description: 'task 1' })
+        .send({ title: 'task 1', subtitle: 'task 1', description: 'task 1', octave: OCTAVE_ENUM.FOUR })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
-          message: ['each value in musicNotes must be a valid enum value', 'musicNotes must be an array'],
+          message: [
+            'each value in musicNotes must be a valid enum value',
+            'musicNotes should not be empty',
+            'musicNotes must be an array',
+          ],
           error: 'Bad Request',
         });
     });
@@ -162,9 +172,13 @@ describe('Tasks Module', () => {
       return request(app.getHttpServer())
         .post('/tasks')
         .set(GenerateHeader(true, true))
-        .send({ title: 'task 1', subtitle: 'task 1', description: 'task 1', musicNotes: [] })
+        .send({ title: 'task 1', subtitle: 'task 1', description: 'task 1', musicNotes: [], octave: OCTAVE_ENUM.FOUR })
         .expect(HttpStatus.BAD_REQUEST)
-        .expect({ message: 'musicNotes must not be an empty array' });
+        .expect({
+          statusCode: 400,
+          message: ['musicNotes should not be empty'],
+          error: 'Bad Request',
+        });
     });
 
     it('should fail creating task with invalid type of musicNotes', () => {
@@ -176,11 +190,16 @@ describe('Tasks Module', () => {
           subtitle: 'task 1',
           description: 'task 1',
           musicNotes: 'C2, D2, E2',
+          octave: OCTAVE_ENUM.FOUR,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
-          message: ['each value in musicNotes must be a valid enum value', 'musicNotes must be an array'],
+          message: [
+            'each value in musicNotes must be a valid enum value',
+            'musicNotes should not be empty',
+            'musicNotes must be an array',
+          ],
           error: 'Bad Request',
         });
     });
@@ -194,6 +213,7 @@ describe('Tasks Module', () => {
           subtitle: 'task 1',
           description: 'task 1',
           musicNotes: ['C1', 'D1', 'E1'],
+          octave: OCTAVE_ENUM.FOUR,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -203,12 +223,69 @@ describe('Tasks Module', () => {
         });
     });
 
+    it('should fail creating task with missing octave', () => {
+      return request(app.getHttpServer())
+        .post('/tasks')
+        .set(GenerateHeader(true, true))
+        .send({
+          title: 'task 1',
+          subtitle: 'task 1',
+          description: 'task 1',
+          musicNotes: [MUSIC_NOTES_ENUM.C, MUSIC_NOTES_ENUM.D, MUSIC_NOTES_ENUM.E],
+        })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: ['each value in octave must be a valid enum value', 'octave must be a string'],
+          error: 'Bad Request',
+        });
+    });
+
+    it('should fail creating task with invalid type of octave', () => {
+      return request(app.getHttpServer())
+        .post('/tasks')
+        .set(GenerateHeader(true, true))
+        .send({
+          title: 'task 1',
+          subtitle: 'task 1',
+          description: 'task 1',
+          musicNotes: [MUSIC_NOTES_ENUM.C, MUSIC_NOTES_ENUM.D, MUSIC_NOTES_ENUM.E],
+          octave: 4,
+        })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: ['each value in octave must be a valid enum value', 'octave must be a string'],
+          error: 'Bad Request',
+        });
+    });
+
+    it('should fail creating task with invalid enum value of octave', () => {
+      return request(app.getHttpServer())
+        .post('/tasks')
+        .set(GenerateHeader(true, true))
+        .send({
+          title: 'task 1',
+          subtitle: 'task 1',
+          description: 'task 1',
+          musicNotes: [MUSIC_NOTES_ENUM.C, MUSIC_NOTES_ENUM.D, MUSIC_NOTES_ENUM.E],
+          octave: 'ONE',
+        })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: ['each value in octave must be a valid enum value'],
+          error: 'Bad Request',
+        });
+    });
+
     it('should fail creating task for non admin user', async () => {
       const create: ITask = {
         title: 'task 1',
         subtitle: 'task 1',
         description: 'task 1',
-        musicNotes: [MUSIC_NOTES_ENUM.C2, MUSIC_NOTES_ENUM.D2, MUSIC_NOTES_ENUM.E2],
+        musicNotes: [MUSIC_NOTES_ENUM.C, MUSIC_NOTES_ENUM.D, MUSIC_NOTES_ENUM.E],
+        octave: OCTAVE_ENUM.FOUR,
       };
       await request(app.getHttpServer())
         .post('/tasks')
@@ -222,7 +299,8 @@ describe('Tasks Module', () => {
         title: 'task 1',
         subtitle: 'task 1',
         description: 'task 1',
-        musicNotes: [MUSIC_NOTES_ENUM.C2, MUSIC_NOTES_ENUM.D2, MUSIC_NOTES_ENUM.E2],
+        musicNotes: [MUSIC_NOTES_ENUM.C, MUSIC_NOTES_ENUM.D, MUSIC_NOTES_ENUM.E],
+        octave: OCTAVE_ENUM.FOUR,
       };
       await request(app.getHttpServer())
         .post('/tasks')
@@ -236,7 +314,8 @@ describe('Tasks Module', () => {
         title: 'task 1',
         subtitle: 'task 1',
         description: 'task 1',
-        musicNotes: [MUSIC_NOTES_ENUM.C2, MUSIC_NOTES_ENUM.D2, MUSIC_NOTES_ENUM.E2],
+        musicNotes: [MUSIC_NOTES_ENUM.C, MUSIC_NOTES_ENUM.D, MUSIC_NOTES_ENUM.E],
+        octave: OCTAVE_ENUM.FOUR,
       };
       const { body } = await request(app.getHttpServer())
         .post('/tasks')
@@ -342,7 +421,11 @@ describe('Tasks Module', () => {
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
-          message: ['each value in musicNotes must be a valid enum value', 'musicNotes must be an array'],
+          message: [
+            'each value in musicNotes must be a valid enum value',
+            'musicNotes should not be empty',
+            'musicNotes must be an array',
+          ],
           error: 'Bad Request',
         });
     });
@@ -357,6 +440,34 @@ describe('Tasks Module', () => {
         .expect({
           statusCode: 400,
           message: ['each value in musicNotes must be a valid enum value'],
+          error: 'Bad Request',
+        });
+    });
+
+    it('should fail updating task with invalid type of octave', async () => {
+      const [databaseValue] = await repository.find({ take: 1 });
+      await request(app.getHttpServer())
+        .put(`/tasks/${databaseValue.id}`)
+        .set(GenerateHeader(true, true))
+        .send({ octave: 4 })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: ['each value in octave must be a valid enum value', 'octave must be a string'],
+          error: 'Bad Request',
+        });
+    });
+
+    it('should fail updating task with invalid enum value of octave', async () => {
+      const [databaseValue] = await repository.find({ take: 1 });
+      await request(app.getHttpServer())
+        .put(`/tasks/${databaseValue.id}`)
+        .set(GenerateHeader(true, true))
+        .send({ octave: 'ONE' })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: ['each value in octave must be a valid enum value'],
           error: 'Bad Request',
         });
     });
@@ -427,13 +538,28 @@ describe('Tasks Module', () => {
     });
 
     it('should successfully update task with valid type of musicNotes', async () => {
-      const update = { musicNotes: [MUSIC_NOTES_ENUM.A2, MUSIC_NOTES_ENUM.B2, MUSIC_NOTES_ENUM.C2] };
+      const update = { musicNotes: [MUSIC_NOTES_ENUM.A, MUSIC_NOTES_ENUM.B, MUSIC_NOTES_ENUM.C] };
       const [databaseValue] = await repository.find({ take: 1 });
       await repository.update(
         { id: databaseValue.id },
-        { musicNotes: [MUSIC_NOTES_ENUM.A2, MUSIC_NOTES_ENUM.B2, MUSIC_NOTES_ENUM.C2] },
+        { musicNotes: [MUSIC_NOTES_ENUM.A, MUSIC_NOTES_ENUM.B, MUSIC_NOTES_ENUM.C] },
       );
-      databaseValue.musicNotes = [MUSIC_NOTES_ENUM.A2, MUSIC_NOTES_ENUM.B2, MUSIC_NOTES_ENUM.C2];
+      databaseValue.musicNotes = [MUSIC_NOTES_ENUM.A, MUSIC_NOTES_ENUM.B, MUSIC_NOTES_ENUM.C];
+      const { body } = await request(app.getHttpServer())
+        .put(`/tasks/${databaseValue.id}`)
+        .set(GenerateHeader(true, true))
+        .send(update)
+        .expect(HttpStatus.OK);
+      const newDatabaseValue = await repository.findOne(databaseValue.id);
+      dataToCompare(body, newDatabaseValue);
+      dataToCompare({ ...databaseValue, ...update }, newDatabaseValue);
+    });
+
+    it('should successfully update task with valid type of octave', async () => {
+      const update = { octave: OCTAVE_ENUM.FIVE };
+      const [databaseValue] = await repository.find({ take: 1 });
+      await repository.update({ id: databaseValue.id }, { octave: OCTAVE_ENUM.FIVE });
+      databaseValue.octave = OCTAVE_ENUM.FIVE;
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
         .set(GenerateHeader(true, true))

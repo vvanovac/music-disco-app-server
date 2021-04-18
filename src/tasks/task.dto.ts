@@ -1,5 +1,5 @@
-import { IsArray, IsEnum, IsOptional, IsString } from 'class-validator';
-import { MUSIC_NOTES_ENUM } from '../common/constants';
+import { ArrayNotEmpty, IsArray, IsEnum, IsOptional, IsString } from 'class-validator';
+import { MUSIC_NOTES_ENUM, OCTAVE_ENUM } from '../common/constants';
 
 export class CreateTaskDto {
   @IsString()
@@ -12,8 +12,13 @@ export class CreateTaskDto {
   description: string;
 
   @IsArray()
+  @ArrayNotEmpty()
   @IsEnum(MUSIC_NOTES_ENUM, { each: true })
   musicNotes: MUSIC_NOTES_ENUM[];
+
+  @IsString()
+  @IsEnum(OCTAVE_ENUM, { each: true })
+  octave: OCTAVE_ENUM;
 }
 
 export class UpdateTaskDto {
@@ -30,7 +35,13 @@ export class UpdateTaskDto {
   description: string;
 
   @IsArray()
+  @ArrayNotEmpty()
   @IsOptional()
   @IsEnum(MUSIC_NOTES_ENUM, { each: true })
   musicNotes: MUSIC_NOTES_ENUM[];
+
+  @IsString()
+  @IsOptional()
+  @IsEnum(OCTAVE_ENUM, { each: true })
+  octave: OCTAVE_ENUM;
 }

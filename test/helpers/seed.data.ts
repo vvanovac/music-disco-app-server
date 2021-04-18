@@ -1,4 +1,4 @@
-import { MUSIC_NOTES_ENUM } from '../../src/common/constants';
+import { MUSIC_NOTES_ENUM, OCTAVE_ENUM } from '../../src/common/constants';
 
 export const users = (excludePassword = true) =>
   [
@@ -34,12 +34,14 @@ export const tasks = () => [
     title: 'test 1',
     subtitle: 'test 1',
     description: 'test 1',
-    musicNotes: [MUSIC_NOTES_ENUM.C2, MUSIC_NOTES_ENUM.D2, MUSIC_NOTES_ENUM.E2],
+    musicNotes: [MUSIC_NOTES_ENUM.C, MUSIC_NOTES_ENUM.D, MUSIC_NOTES_ENUM.E],
+    octave: OCTAVE_ENUM.FOUR,
   },
   {
     title: 'test 2',
     subtitle: 'test 2',
     description: 'test 2',
-    musicNotes: [MUSIC_NOTES_ENUM.D2, MUSIC_NOTES_ENUM.E2],
+    musicNotes: [MUSIC_NOTES_ENUM.D, MUSIC_NOTES_ENUM.E],
+    octave: OCTAVE_ENUM.FOUR,
   },
 ];
