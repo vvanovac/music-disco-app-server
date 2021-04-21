@@ -236,7 +236,7 @@ describe('Tasks Module', () => {
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
-          message: ['each value in octave must be a valid enum value', 'octave must be a string'],
+          message: ['octave must be a valid enum value', 'octave must be a string'],
           error: 'Bad Request',
         });
     });
@@ -255,7 +255,7 @@ describe('Tasks Module', () => {
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
-          message: ['each value in octave must be a valid enum value', 'octave must be a string'],
+          message: ['octave must be a valid enum value', 'octave must be a string'],
           error: 'Bad Request',
         });
     });
@@ -274,7 +274,7 @@ describe('Tasks Module', () => {
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
-          message: ['each value in octave must be a valid enum value'],
+          message: ['octave must be a valid enum value'],
           error: 'Bad Request',
         });
     });
@@ -453,7 +453,7 @@ describe('Tasks Module', () => {
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
-          message: ['each value in octave must be a valid enum value', 'octave must be a string'],
+          message: ['octave must be a valid enum value', 'octave must be a string'],
           error: 'Bad Request',
         });
     });
@@ -467,7 +467,7 @@ describe('Tasks Module', () => {
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
-          message: ['each value in octave must be a valid enum value'],
+          message: ['octave must be a valid enum value'],
           error: 'Bad Request',
         });
     });

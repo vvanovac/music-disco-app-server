@@ -18,6 +18,6 @@ export default class Tasks {
   @Column({ type: 'json' })
   musicNotes: MUSIC_NOTES_ENUM[];
 
-  @Column({ type: 'json' })
+  @Column({ type: 'varchar' })
   octave: OCTAVE_ENUM;
 }

@@ -17,7 +17,7 @@ export class CreateTaskDto {
   musicNotes: MUSIC_NOTES_ENUM[];
 
   @IsString()
-  @IsEnum(OCTAVE_ENUM, { each: true })
+  @IsEnum(OCTAVE_ENUM)
   octave: OCTAVE_ENUM;
 }
 
@@ -42,6 +42,6 @@ export class UpdateTaskDto {
 
   @IsString()
   @IsOptional()
-  @IsEnum(OCTAVE_ENUM, { each: true })
+  @IsEnum(OCTAVE_ENUM)
   octave: OCTAVE_ENUM;
 }

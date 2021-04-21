@@ -25,7 +25,7 @@ export enum MUSIC_NOTES_ENUM {
   G = 'G',
   A = 'A',
   B = 'B',
-  C2 = 'C',
+  C2 = 'C2',
   Csharp = 'C#',
   Dsharp = 'D#',
   Fsharp = 'F#',
