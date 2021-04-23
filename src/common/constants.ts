@@ -1,6 +1,7 @@
 import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 import Users from '../authentication/users.entity';
 import Tasks from '../tasks/tasks.entity';
+import Lessons from '../lessons/lessons.entity';
 
 const pgSchema = process.env.DB_SCHEMA || 'public';
 
@@ -33,6 +34,12 @@ export enum MUSIC_NOTES_ENUM {
   Asharp = 'A#',
 }
 
+export enum DIFFICULTIES_ENUM {
+  BEGINNER = 'BEGINNER',
+  AMATEUR = 'AMATEUR',
+  MEDIUM = 'MEDIUM',
+}
+
 export const port = +process.env.PORT || 3000;
 export const database: PostgresConnectionOptions = {
   type: 'postgres',
@@ -42,7 +49,7 @@ export const database: PostgresConnectionOptions = {
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'postgres',
   schema: pgSchema,
-  entities: [Users, Tasks],
+  entities: [Users, Tasks, Lessons],
   synchronize: true,
 };
 export const jwt = {
