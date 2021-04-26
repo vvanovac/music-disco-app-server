@@ -1,4 +1,4 @@
-import { MUSIC_NOTES_ENUM, OCTAVE_ENUM } from '../../src/common/constants';
+import { DIFFICULTIES_ENUM, MUSIC_NOTES_ENUM, OCTAVE_ENUM } from '../../src/common/constants';
 
 export const users = (excludePassword = true) =>
   [
@@ -43,5 +43,22 @@ export const tasks = () => [
     description: 'test 2',
     musicNotes: [MUSIC_NOTES_ENUM.D, MUSIC_NOTES_ENUM.E],
     octave: OCTAVE_ENUM.FOUR,
+  },
+];
+
+export const lessons = () => [
+  {
+    title: 'test 1',
+    description: 'test 1',
+    listOfTasks: [1, 2, 3],
+    difficulty: DIFFICULTIES_ENUM.BEGINNER,
+    courseID: 1,
+  },
+  {
+    title: 'test 2',
+    description: 'test 2',
+    listOfTasks: [4, 5, 6],
+    difficulty: DIFFICULTIES_ENUM.AMATEUR,
+    courseID: 2,
   },
 ];

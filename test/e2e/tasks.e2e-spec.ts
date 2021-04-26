@@ -540,11 +540,6 @@ describe('Tasks Module', () => {
     it('should successfully update task with valid type of musicNotes', async () => {
       const update = { musicNotes: [MUSIC_NOTES_ENUM.A, MUSIC_NOTES_ENUM.B, MUSIC_NOTES_ENUM.C] };
       const [databaseValue] = await repository.find({ take: 1 });
-      await repository.update(
-        { id: databaseValue.id },
-        { musicNotes: [MUSIC_NOTES_ENUM.A, MUSIC_NOTES_ENUM.B, MUSIC_NOTES_ENUM.C] },
-      );
-      databaseValue.musicNotes = [MUSIC_NOTES_ENUM.A, MUSIC_NOTES_ENUM.B, MUSIC_NOTES_ENUM.C];
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
         .set(GenerateHeader(true, true))
@@ -558,8 +553,6 @@ describe('Tasks Module', () => {
     it('should successfully update task with valid type of octave', async () => {
       const update = { octave: OCTAVE_ENUM.FIVE };
       const [databaseValue] = await repository.find({ take: 1 });
-      await repository.update({ id: databaseValue.id }, { octave: OCTAVE_ENUM.FIVE });
-      databaseValue.octave = OCTAVE_ENUM.FIVE;
       const { body } = await request(app.getHttpServer())
         .put(`/tasks/${databaseValue.id}`)
         .set(GenerateHeader(true, true))
