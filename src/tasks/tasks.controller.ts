@@ -45,6 +45,16 @@ export default class TasksController {
     }
   }
 
+  @Get('/byLesson/:lessonID')
+  async findByLesson(@Param('lessonID') lessonID, @Res() res): Promise<ITask> {
+    try {
+      const task = await this.tasksService.findTaskByLessonID(lessonID);
+      return res.status(HttpStatus.OK).json(task);
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+    }
+  }
+
   @UseGuards(new JwtAuthGuard(AUTH_GUARD_TYPES_ENUM.ADMIN))
   @Put(':id')
   async update(@Param('id') id, @Body() updateTaskDto: UpdateTaskDto, @Res() res): Promise<ITask> {
