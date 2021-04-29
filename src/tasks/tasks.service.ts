@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { createQueryBuilder, Repository } from 'typeorm';
+
 import Tasks from './tasks.entity';
+import TaskLesson from '../taskLesson/task-lesson.entity';
 import { UpdateTaskDto } from './task.dto';
 import { ITask, ITaskService } from './task.interface';
-import TaskLesson from '../TaskLesson/task-lesson.entity';
 
 @Injectable()
 export default class TasksService implements ITaskService {

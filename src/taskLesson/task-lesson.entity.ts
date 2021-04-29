@@ -1,4 +1,5 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
 import { DIFFICULTIES_ENUM } from '../common/constants';
 import Lessons from '../lessons/lessons.entity';
 import Tasks from '../tasks/tasks.entity';

@@ -2,7 +2,7 @@ import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConne
 import Users from '../authentication/users.entity';
 import Tasks from '../tasks/tasks.entity';
 import Lessons from '../lessons/lessons.entity';
-import TaskLesson from '../TaskLesson/task-lesson.entity';
+import TaskLesson from '../taskLesson/task-lesson.entity';
 
 const pgSchema = process.env.DB_SCHEMA || 'public';
 

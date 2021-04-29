@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { ITaskLesson, ITaskLessonService } from './task-lesson.interface';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import TaskLesson from './task-lesson.entity';
-import { Repository } from 'typeorm';
 import { UpdateTaskLessonDto } from './task-lesson.dto';
+import { ITaskLesson, ITaskLessonService } from './task-lesson.interface';
 
 @Injectable()
 export default class TaskLessonService implements ITaskLessonService {
