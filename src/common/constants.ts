@@ -3,6 +3,7 @@ import Users from '../authentication/users.entity';
 import Tasks from '../tasks/tasks.entity';
 import Lessons from '../lessons/lessons.entity';
 import TaskLesson from '../taskLesson/task-lesson.entity';
+import UserProgress from '../userProgress/user-progress.entity';
 
 const pgSchema = process.env.DB_SCHEMA || 'public';
 
@@ -50,7 +51,7 @@ export const database: PostgresConnectionOptions = {
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_NAME || 'postgres',
   schema: pgSchema,
-  entities: [Users, Tasks, Lessons, TaskLesson],
+  entities: [Users, Tasks, Lessons, TaskLesson, UserProgress],
   synchronize: true,
 };
 export const jwt = {
