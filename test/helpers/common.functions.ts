@@ -21,7 +21,7 @@ export const StartServer = async (repositoryUsed: string) => {
 };
 
 export const StopServer = async (app: INestApplication, repository) => {
-  await repository.query(`TRUNCATE ${repository.metadata.tablePath} RESTART IDENTITY;`);
+  await repository.query(`TRUNCATE ${repository.metadata.tablePath} RESTART IDENTITY CASCADE;`);
   await app.close();
 };
 

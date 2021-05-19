@@ -16,4 +16,5 @@ export interface ITaskLessonService {
   findTaskLessons(): Promise<ITaskLesson[]>;
   findTaskLesson(id: number): Promise<ITaskLesson>;
   updateTaskLesson(id: number, taskLesson: UpdateTaskLessonDto): Promise<ITaskLesson>;
+  deleteTaskLesson(id: number): Promise<ITaskLesson>;
 }

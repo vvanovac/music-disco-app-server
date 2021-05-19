@@ -5,6 +5,7 @@ import AuthModule from './authentication/auth.module';
 import { TasksModule } from './tasks/tasks.module';
 import { LessonsModule } from './lessons/lessons.module';
 import { UserProgressModule } from './userProgress/user-progress.module';
+import { TaskLessonModule } from './taskLesson/task-lesson.module';
 import { database } from './common/constants';
 
 @Module({
@@ -13,6 +14,7 @@ import { database } from './common/constants';
     TasksModule,
     LessonsModule,
     UserProgressModule,
+    TaskLessonModule,
     TypeOrmModule.forRoot({
       ...database,
       keepConnectionAlive: true,

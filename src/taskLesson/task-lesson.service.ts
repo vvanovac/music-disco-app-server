@@ -40,4 +40,15 @@ export default class TaskLessonService implements ITaskLessonService {
 
     return this.findTaskLesson(id);
   }
+
+  async deleteTaskLesson(id: number): Promise<ITaskLesson> {
+    const taskLesson = await this.findTaskLesson(id);
+
+    if (!taskLesson) {
+      throw new Error('TaskLesson Not Found');
+    }
+    await this.taskLessonRepository.delete({ id: taskLesson.id });
+
+    return taskLesson;
+  }
 }

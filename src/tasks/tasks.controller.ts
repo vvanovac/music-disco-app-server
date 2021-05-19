@@ -46,10 +46,10 @@ export default class TasksController {
   }
 
   @Get('/byLesson/:lessonID')
-  async findByLesson(@Param('lessonID') lessonID, @Res() res): Promise<ITask> {
+  async findByLesson(@Param('lessonID') lessonID, @Res() res): Promise<ITask[]> {
     try {
-      const task = await this.tasksService.findTaskByLessonID(lessonID);
-      return res.status(HttpStatus.OK).json(task);
+      const tasks = await this.tasksService.findTaskByLessonID(lessonID);
+      return res.status(HttpStatus.OK).json(tasks);
     } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
     }
