@@ -45,6 +45,16 @@ export default class TaskLessonController {
     }
   }
 
+  @Get('/:lessonID/:taskID')
+  async getTaskLessonID(@Param('lessonID') lessonID, @Param('taskID') taskID, @Res() res): Promise<ITaskLesson> {
+    try {
+      const taskLesson = await this.taskLessonService.getTaskLessonID(lessonID, taskID);
+      return res.status(HttpStatus.OK).json(taskLesson);
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+    }
+  }
+
   @UseGuards(new JwtAuthGuard(AUTH_GUARD_TYPES_ENUM.ADMIN))
   @Put(':id')
   async update(@Param('id') id, @Body() updateTaskLessonDto: UpdateTaskLessonDto, @Res() res): Promise<ITaskLesson> {

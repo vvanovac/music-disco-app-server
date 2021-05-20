@@ -27,6 +27,10 @@ export default class TaskLessonService implements ITaskLessonService {
     return (await this.taskLessonRepository.findOne(id)) || null;
   }
 
+  async getTaskLessonID(lessonID: number, taskID: number): Promise<ITaskLesson> {
+    return (await this.taskLessonRepository.findOne({ where: { tasks: taskID, lessons: lessonID } })) || null;
+  }
+
   async updateTaskLesson(id: number, taskLesson: UpdateTaskLessonDto): Promise<ITaskLesson> {
     const target = await this.findTaskLesson(id);
 

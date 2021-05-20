@@ -15,6 +15,7 @@ export interface ITaskLessonService {
   createTaskLesson(taskLesson: ITaskLesson): Promise<ITaskLesson>;
   findTaskLessons(): Promise<ITaskLesson[]>;
   findTaskLesson(id: number): Promise<ITaskLesson>;
+  getTaskLessonID(lessonID: number, taskID: number): Promise<ITaskLesson>;
   updateTaskLesson(id: number, taskLesson: UpdateTaskLessonDto): Promise<ITaskLesson>;
   deleteTaskLesson(id: number): Promise<ITaskLesson>;
 }
