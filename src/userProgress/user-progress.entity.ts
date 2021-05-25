@@ -17,6 +17,6 @@ export default class UserProgress {
   @Column({ type: 'boolean' })
   completed: boolean;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'date', nullable: true })
   completionDate: Date;
 }

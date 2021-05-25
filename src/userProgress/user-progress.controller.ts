@@ -44,6 +44,16 @@ export default class UserProgressController {
     }
   }
 
+  @Get('/taskProgress/:userID/:lessonID')
+  async getUserProgress(@Param('userID') userID, @Param('lessonID') lessonID, @Res() res): Promise<IUserProgress[]> {
+    try {
+      const userProgress = await this.userProgressService.getUserProgress(userID, lessonID);
+      return res.status(HttpStatus.OK).json(userProgress);
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+    }
+  }
+
   @UseGuards(new JwtAuthGuard(AUTH_GUARD_TYPES_ENUM.ADMIN))
   @Put(':id')
   async update(

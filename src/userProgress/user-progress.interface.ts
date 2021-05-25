@@ -7,12 +7,13 @@ export interface IUserProgress {
   readonly users: Users;
   readonly taskLesson: TaskLesson;
   readonly completed: boolean;
-  readonly completionDate: Date;
+  readonly completionDate?: Date;
 }
 
 export interface IUserProgressService {
   createUserProgress(userProgress: IUserProgress): Promise<IUserProgress>;
   findAllUserProgress(): Promise<IUserProgress[]>;
   findOneUserProgress(id: number): Promise<IUserProgress>;
+  getUserProgress(userID: number, lessonID: number): Promise<any>;
   updateUserProgress(id: number, userProgress: UpdateUserProgressDto): Promise<IUserProgress>;
 }

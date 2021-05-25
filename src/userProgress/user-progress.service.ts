@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { getRepository, Repository } from 'typeorm';
 
 import UserProgress from './user-progress.entity';
 import { UpdateUserProgressDto } from './user-progress.dto';
@@ -25,6 +25,23 @@ export default class UserProgressService implements IUserProgressService {
 
   async findOneUserProgress(id: number): Promise<IUserProgress> {
     return (await this.userProgressRepository.findOne(id)) || null;
+  }
+
+  async getUserProgress(userID: number, lessonID: number): Promise<any> {
+    const userProgress = await getRepository(UserProgress)
+      .createQueryBuilder('userProgress')
+      .leftJoinAndSelect('userProgress.taskLesson', 'taskLesson')
+      .leftJoinAndSelect('taskLesson.tasks', 'tasks')
+      .leftJoinAndSelect('taskLesson.lessons', 'lessons')
+      .where('lessons.id = :lessonID AND userProgress.usersId = :userID', { userID, lessonID })
+      .getMany();
+
+    return userProgress.map((progress) => {
+      return {
+        taskID: progress.taskLesson.tasks.id,
+        completed: progress.completed,
+      };
+    });
   }
 
   async updateUserProgress(id: number, userProgress: UpdateUserProgressDto): Promise<IUserProgress> {
