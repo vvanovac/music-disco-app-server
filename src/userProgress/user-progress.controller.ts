@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpStatus, Inject, Param, Post, Put, Res, UseGuards } from '@nestjs/common';
 import { I_USER_PROGRESS_SERVICE } from './user-progress.constants';
-import { IUserProgress, IUserProgressService } from './user-progress.interface';
+import { ITaskProgress, IUserProgress, IUserProgressService } from './user-progress.interface';
 import { JwtAuthGuard } from '../authentication/jwt.auth.guard';
 import { AUTH_GUARD_TYPES_ENUM } from '../common/constants';
 import { CreateUserProgressDto, UpdateUserProgressDto } from './user-progress.dto';
@@ -45,10 +45,20 @@ export default class UserProgressController {
   }
 
   @Get('/taskProgress/:userID/:lessonID')
-  async getUserProgress(@Param('userID') userID, @Param('lessonID') lessonID, @Res() res): Promise<IUserProgress[]> {
+  async getTaskProgress(@Param('userID') userID, @Param('lessonID') lessonID, @Res() res): Promise<ITaskProgress[]> {
     try {
-      const userProgress = await this.userProgressService.getUserProgress(userID, lessonID);
-      return res.status(HttpStatus.OK).json(userProgress);
+      const taskProgress = await this.userProgressService.getTaskProgress(userID, lessonID);
+      return res.status(HttpStatus.OK).json(taskProgress);
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+    }
+  }
+
+  @Get('/lessonProgress/:userID/:lessonID')
+  async getLessonProgress(@Param('userID') userID, @Param('lessonID') lessonID, @Res() res): Promise<ITaskProgress[]> {
+    try {
+      const lessonProgress = await this.userProgressService.getLessonProgress(userID, lessonID);
+      return res.status(HttpStatus.OK).json(lessonProgress);
     } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
     }

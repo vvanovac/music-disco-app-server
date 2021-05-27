@@ -10,10 +10,16 @@ export interface IUserProgress {
   readonly completionDate?: Date;
 }
 
+export interface ITaskProgress {
+  readonly taskID: number;
+  readonly completed: boolean;
+}
+
 export interface IUserProgressService {
   createUserProgress(userProgress: IUserProgress): Promise<IUserProgress>;
   findAllUserProgress(): Promise<IUserProgress[]>;
   findOneUserProgress(id: number): Promise<IUserProgress>;
-  getUserProgress(userID: number, lessonID: number): Promise<any>;
+  getTaskProgress(userID: number, lessonID: number): Promise<ITaskProgress[]>;
+  getLessonProgress(userID: number, lessonID: number): Promise<number>;
   updateUserProgress(id: number, userProgress: UpdateUserProgressDto): Promise<IUserProgress>;
 }

@@ -4,7 +4,7 @@ import { getRepository, Repository } from 'typeorm';
 
 import UserProgress from './user-progress.entity';
 import { UpdateUserProgressDto } from './user-progress.dto';
-import { IUserProgress, IUserProgressService } from './user-progress.interface';
+import { ITaskProgress, IUserProgress, IUserProgressService } from './user-progress.interface';
 
 @Injectable()
 export default class UserProgressService implements IUserProgressService {
@@ -27,21 +27,34 @@ export default class UserProgressService implements IUserProgressService {
     return (await this.userProgressRepository.findOne(id)) || null;
   }
 
-  async getUserProgress(userID: number, lessonID: number): Promise<any> {
-    const userProgress = await getRepository(UserProgress)
+  async getTaskProgress(userID: number, lessonID: number): Promise<ITaskProgress[]> {
+    const taskProgress = await getRepository(UserProgress)
       .createQueryBuilder('userProgress')
       .leftJoinAndSelect('userProgress.taskLesson', 'taskLesson')
       .leftJoinAndSelect('taskLesson.tasks', 'tasks')
       .leftJoinAndSelect('taskLesson.lessons', 'lessons')
-      .where('lessons.id = :lessonID AND userProgress.usersId = :userID', { userID, lessonID })
+      .where('userProgress.usersId = :userID', { userID })
+      .andWhere('lessons.id = :lessonID', { lessonID })
       .getMany();
 
-    return userProgress.map((progress) => {
+    return taskProgress.map((progress) => {
       return {
         taskID: progress.taskLesson.tasks.id,
         completed: progress.completed,
       };
     });
+  }
+
+  async getLessonProgress(userID: number, lessonID: number): Promise<number> {
+    return await getRepository(UserProgress)
+      .createQueryBuilder('userProgress')
+      .leftJoinAndSelect('userProgress.taskLesson', 'taskLesson')
+      .leftJoinAndSelect('taskLesson.lessons', 'lessons')
+      .leftJoinAndSelect('taskLesson.tasks', 'tasks')
+      .where('userProgress.usersId = :userID', { userID })
+      .andWhere('lessons.id = :lessonID', { lessonID })
+      .andWhere('userProgress.completed = true')
+      .getCount();
   }
 
   async updateUserProgress(id: number, userProgress: UpdateUserProgressDto): Promise<IUserProgress> {

@@ -32,10 +32,13 @@ export default class AuthController {
   @Get('currentUser')
   async getUser(@Req() req, @Res() res) {
     try {
-      const user = await this.authService.findUser({
-        id: req.user.id,
-        username: req.user.username,
-      });
+      const user = await this.authService.findUser(
+        {
+          id: req.user.id,
+          username: req.user.username,
+        },
+        { addID: true },
+      );
       return res.status(HttpStatus.OK).json(user);
     } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
