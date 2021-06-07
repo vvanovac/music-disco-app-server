@@ -54,17 +54,21 @@ export default class UserProgressController {
     }
   }
 
-  @Get('/lessonProgress/:userID/:lessonID')
-  async getLessonProgress(@Param('userID') userID, @Param('lessonID') lessonID, @Res() res): Promise<ITaskProgress[]> {
+  @Get('/completedTasks/:userID/:lessonID')
+  async countCompletedTasks(
+    @Param('userID') userID,
+    @Param('lessonID') lessonID,
+    @Res() res,
+  ): Promise<ITaskProgress[]> {
     try {
-      const lessonProgress = await this.userProgressService.getLessonProgress(userID, lessonID);
-      return res.status(HttpStatus.OK).json(lessonProgress);
+      const count = await this.userProgressService.countCompletedTasks(userID, lessonID);
+      return res.status(HttpStatus.OK).json(count);
     } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
     }
   }
 
-  @UseGuards(new JwtAuthGuard(AUTH_GUARD_TYPES_ENUM.ADMIN))
+  @UseGuards(new JwtAuthGuard(AUTH_GUARD_TYPES_ENUM.AUTHORIZED))
   @Put(':id')
   async update(
     @Param('id') id,

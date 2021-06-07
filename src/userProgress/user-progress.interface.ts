@@ -20,6 +20,6 @@ export interface IUserProgressService {
   findAllUserProgress(): Promise<IUserProgress[]>;
   findOneUserProgress(id: number): Promise<IUserProgress>;
   getTaskProgress(userID: number, lessonID: number): Promise<ITaskProgress[]>;
-  getLessonProgress(userID: number, lessonID: number): Promise<number>;
+  countCompletedTasks(userID: number, lessonID: number): Promise<number>;
   updateUserProgress(id: number, userProgress: UpdateUserProgressDto): Promise<IUserProgress>;
 }

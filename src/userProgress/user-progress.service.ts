@@ -39,13 +39,14 @@ export default class UserProgressService implements IUserProgressService {
 
     return taskProgress.map((progress) => {
       return {
+        progressID: progress.id,
         taskID: progress.taskLesson.tasks.id,
         completed: progress.completed,
       };
     });
   }
 
-  async getLessonProgress(userID: number, lessonID: number): Promise<number> {
+  async countCompletedTasks(userID: number, lessonID: number): Promise<number> {
     return await getRepository(UserProgress)
       .createQueryBuilder('userProgress')
       .leftJoinAndSelect('userProgress.taskLesson', 'taskLesson')
