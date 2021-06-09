@@ -44,6 +44,21 @@ export default class UserProgressController {
     }
   }
 
+  @Get('/id/:userID/:lessonID/:taskID')
+  async getUserProgressID(
+    @Param('userID') userID,
+    @Param('lessonID') lessonID,
+    @Param('taskID') taskID,
+    @Res() res,
+  ): Promise<number> {
+    try {
+      const id = await this.userProgressService.getUserProgressID(userID, lessonID, taskID);
+      return res.status(HttpStatus.OK).json(id);
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+    }
+  }
+
   @Get('/taskProgress/:userID/:lessonID')
   async getTaskProgress(@Param('userID') userID, @Param('lessonID') lessonID, @Res() res): Promise<ITaskProgress[]> {
     try {

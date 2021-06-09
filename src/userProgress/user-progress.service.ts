@@ -27,6 +27,20 @@ export default class UserProgressService implements IUserProgressService {
     return (await this.userProgressRepository.findOne(id)) || null;
   }
 
+  async getUserProgressID(userID: number, lessonID: number, taskID: number): Promise<number> {
+    const userProgress = await getRepository(UserProgress)
+      .createQueryBuilder('userProgress')
+      .leftJoinAndSelect('userProgress.taskLesson', 'taskLesson')
+      .leftJoinAndSelect('taskLesson.lessons', 'lessons')
+      .leftJoinAndSelect('taskLesson.tasks', 'tasks')
+      .where('userProgress.usersId = :userID', { userID })
+      .andWhere('lessons.id = :lessonID', { lessonID })
+      .andWhere('tasks.id = :taskID', { taskID })
+      .getOne();
+
+    return userProgress ? userProgress.id : null;
+  }
+
   async getTaskProgress(userID: number, lessonID: number): Promise<ITaskProgress[]> {
     const taskProgress = await getRepository(UserProgress)
       .createQueryBuilder('userProgress')
