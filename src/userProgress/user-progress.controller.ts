@@ -13,7 +13,7 @@ export default class UserProgressController {
     private readonly userProgressService: IUserProgressService,
   ) {}
 
-  @UseGuards(new JwtAuthGuard(AUTH_GUARD_TYPES_ENUM.ADMIN))
+  @UseGuards(new JwtAuthGuard(AUTH_GUARD_TYPES_ENUM.AUTHORIZED))
   @Post()
   async create(@Body() createUserProgressDto: CreateUserProgressDto, @Res() res): Promise<IUserProgress> {
     try {
