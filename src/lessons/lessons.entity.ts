@@ -1,5 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
 import { DIFFICULTIES_ENUM } from '../common/constants';
+import Courses from '../courses/courses.entity';
 
 @Entity()
 export default class Lessons {
@@ -18,6 +20,6 @@ export default class Lessons {
   @Column({ type: 'varchar' })
   difficulty: DIFFICULTIES_ENUM;
 
-  @Column({ type: 'int4' })
-  courseID: number;
+  @ManyToOne(() => Courses, (courses: Courses) => courses.id)
+  courses: Courses;
 }

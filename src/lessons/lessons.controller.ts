@@ -45,6 +45,16 @@ export default class LessonsController {
     }
   }
 
+  @Get('/byCourse/:courseID')
+  async findByCourse(@Param('courseID') courseID, @Res() res): Promise<ILesson[]> {
+    try {
+      const lessons = await this.lessonsService.findLessonsByCourseID(courseID);
+      return res.status(HttpStatus.OK).json(lessons);
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+    }
+  }
+
   @UseGuards(new JwtAuthGuard(AUTH_GUARD_TYPES_ENUM.ADMIN))
   @Put(':id')
   async update(@Param('id') id, @Body() updateLessonDto: UpdateLessonDto, @Res() res): Promise<ILesson> {

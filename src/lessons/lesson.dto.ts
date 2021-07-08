@@ -1,5 +1,7 @@
 import { ArrayNotEmpty, IsArray, IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
+
 import { DIFFICULTIES_ENUM } from '../common/constants';
+import Courses from '../courses/courses.entity';
 
 export class CreateLessonDto {
   @IsString()
@@ -17,7 +19,7 @@ export class CreateLessonDto {
   difficulty: DIFFICULTIES_ENUM;
 
   @IsNumber()
-  courseID: number;
+  courses: Courses;
 }
 
 export class UpdateLessonDto {
@@ -41,5 +43,5 @@ export class UpdateLessonDto {
 
   @IsNumber()
   @IsOptional()
-  courseID: number;
+  courses: Courses;
 }
