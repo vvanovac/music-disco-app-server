@@ -52,13 +52,23 @@ export const lessons = () => [
     description: 'test 1',
     listOfTasks: [1, 2, 3],
     difficulty: DIFFICULTIES_ENUM.BEGINNER,
-    courseID: 1,
+    courses: 1,
   },
   {
     title: 'test 2',
     description: 'test 2',
     listOfTasks: [4, 5, 6],
     difficulty: DIFFICULTIES_ENUM.AMATEUR,
-    courseID: 2,
+    courses: 2,
+  },
+];
+export const courses = () => [
+  {
+    title: 'test 1',
+    description: 'test 1',
+  },
+  {
+    title: 'test 2',
+    description: 'test 2',
   },
 ];

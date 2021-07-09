@@ -3,7 +3,7 @@ import { Repository } from 'typeorm';
 import * as request from 'supertest';
 
 import Lessons from '../../src/lessons/lessons.entity';
-import { ILesson } from '../../src/lessons/lesson.interface';
+import { ILessonTest } from '../../src/lessons/lesson.interface';
 import { GenerateSeed, GenerateToken, RemoveSeed, StartServer, StopServer } from '../helpers/common.functions';
 import { lessons } from '../helpers/seed.data';
 import { DIFFICULTIES_ENUM } from '../../src/common/constants';
@@ -13,7 +13,6 @@ const dataToCompare = (expected, received) => {
   expect(expected.description).toStrictEqual(received.description);
   expect(expected.listOfTasks).toStrictEqual(received.listOfTasks);
   expect(expected.difficulty).toStrictEqual(received.difficulty);
-  expect(expected.courseID).toStrictEqual(received.courseID);
 };
 
 const GenerateHeader = (generateAuthorization = false, isAdmin = false) => {
@@ -36,9 +35,9 @@ describe('Lessons Module', () => {
 
   afterEach(async () => StopServer(app, repository));
 
-  beforeAll(async () => GenerateSeed(['Users']));
+  beforeAll(async () => GenerateSeed(['Users', 'Courses']));
 
-  afterAll(() => RemoveSeed(['Users']));
+  afterAll(() => RemoveSeed(['Users', 'Courses']));
 
   describe('While testing creating lesson flows', () => {
     it('should fail creating lesson with missing title', () => {
@@ -49,7 +48,7 @@ describe('Lessons Module', () => {
           description: 'lesson 1',
           listOfTasks: [1, 2, 3],
           difficulty: DIFFICULTIES_ENUM.BEGINNER,
-          courseID: 1,
+          courses: 1,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -68,7 +67,7 @@ describe('Lessons Module', () => {
           description: 'lesson 1',
           listOfTasks: [1, 2, 3],
           difficulty: DIFFICULTIES_ENUM.BEGINNER,
-          courseID: 1,
+          courses: 1,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -86,7 +85,7 @@ describe('Lessons Module', () => {
           title: 'lesson 1',
           listOfTasks: [1, 2, 3],
           difficulty: DIFFICULTIES_ENUM.BEGINNER,
-          courseID: 1,
+          courses: 1,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -105,7 +104,7 @@ describe('Lessons Module', () => {
           description: 1,
           listOfTasks: [1, 2, 3],
           difficulty: DIFFICULTIES_ENUM.BEGINNER,
-          courseID: 1,
+          courses: 1,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -123,7 +122,7 @@ describe('Lessons Module', () => {
           title: 'lesson 1',
           description: 'lesson 1',
           difficulty: DIFFICULTIES_ENUM.BEGINNER,
-          courseID: 1,
+          courses: 1,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -142,7 +141,7 @@ describe('Lessons Module', () => {
           description: 'lesson 1',
           listOfTasks: '1, 2, 3',
           difficulty: DIFFICULTIES_ENUM.BEGINNER,
-          courseID: 1,
+          courses: 1,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -161,7 +160,7 @@ describe('Lessons Module', () => {
           description: 'lesson 1',
           listOfTasks: ['task 1', 'task 2', 'task 3'],
           difficulty: DIFFICULTIES_ENUM.BEGINNER,
-          courseID: 1,
+          courses: 1,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({ message: 'invalid input syntax for type integer: "task 1"' });
@@ -176,7 +175,7 @@ describe('Lessons Module', () => {
           description: 'lesson 1',
           listOfTasks: [],
           difficulty: DIFFICULTIES_ENUM.BEGINNER,
-          courseID: 1,
+          courses: 1,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -194,7 +193,7 @@ describe('Lessons Module', () => {
           title: 'lesson 1',
           description: 'lesson 1',
           listOfTasks: [1, 2, 3],
-          courseID: 1,
+          courses: 1,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -213,7 +212,7 @@ describe('Lessons Module', () => {
           description: 'lesson 1',
           difficulty: 1,
           listOfTasks: [1, 2, 3],
-          courseID: 1,
+          courses: 1,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -232,7 +231,7 @@ describe('Lessons Module', () => {
           description: 'lesson 1',
           difficulty: 'DIFFICULTY 1',
           listOfTasks: [1, 2, 3],
-          courseID: 1,
+          courses: 1,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -255,7 +254,7 @@ describe('Lessons Module', () => {
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
-          message: ['courseID must be a number conforming to the specified constraints'],
+          message: ['courses must be a number conforming to the specified constraints'],
           error: 'Bad Request',
         });
     });
@@ -269,23 +268,23 @@ describe('Lessons Module', () => {
           description: 'lesson 1',
           difficulty: DIFFICULTIES_ENUM.BEGINNER,
           listOfTasks: [1, 2, 3],
-          courseID: '1',
+          courses: '1',
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
-          message: ['courseID must be a number conforming to the specified constraints'],
+          message: ['courses must be a number conforming to the specified constraints'],
           error: 'Bad Request',
         });
     });
 
     it('should fail creating lesson for non admin user', async () => {
-      const create: ILesson = {
+      const create: ILessonTest = {
         title: 'lesson 1',
         description: 'lesson 1',
         difficulty: DIFFICULTIES_ENUM.BEGINNER,
         listOfTasks: [1, 2, 3],
-        courseID: 1,
+        courses: 1,
       };
       await request(app.getHttpServer())
         .post('/lessons')
@@ -299,12 +298,12 @@ describe('Lessons Module', () => {
     });
 
     it('should fail creating lesson without token', async () => {
-      const create: ILesson = {
+      const create: ILessonTest = {
         title: 'lesson 1',
         description: 'lesson 1',
         difficulty: DIFFICULTIES_ENUM.BEGINNER,
         listOfTasks: [1, 2, 3],
-        courseID: 1,
+        courses: 1,
       };
       await request(app.getHttpServer())
         .post('/lessons')
@@ -318,12 +317,12 @@ describe('Lessons Module', () => {
     });
 
     it('should successfully create lesson', async () => {
-      const create: ILesson = {
+      const create: ILessonTest = {
         title: 'lesson 1',
         description: 'lesson 1',
         difficulty: DIFFICULTIES_ENUM.BEGINNER,
         listOfTasks: [1, 2, 3],
-        courseID: 1,
+        courses: 1,
       };
       const { body } = await request(app.getHttpServer())
         .post('/lessons')
@@ -347,7 +346,7 @@ describe('Lessons Module', () => {
         });
     });
 
-    it('should successfully get all tasks', async () => {
+    it('should successfully get all lessons', async () => {
       const { body } = await request(app.getHttpServer())
         .get('/lessons')
         .set(GenerateHeader(true, false))
@@ -357,7 +356,7 @@ describe('Lessons Module', () => {
       body.forEach((bodyData, index) => dataToCompare(bodyData, lessons()[index]));
     });
 
-    it('should successfully get one task', async () => {
+    it('should successfully get one lesson', async () => {
       const [databaseValue] = await repository.find({ take: 1 });
       const { body } = await request(app.getHttpServer())
         .get(`/lessons/${databaseValue.id}`)
@@ -463,11 +462,11 @@ describe('Lessons Module', () => {
       await request(app.getHttpServer())
         .put(`/lessons/${databaseValue.id}`)
         .set(GenerateHeader(true, true))
-        .send({ courseID: '1' })
+        .send({ courses: '1' })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
-          message: ['courseID must be a number conforming to the specified constraints'],
+          message: ['courses must be a number conforming to the specified constraints'],
           error: 'Bad Request',
         });
     });
@@ -547,7 +546,7 @@ describe('Lessons Module', () => {
     });
 
     it('should successfully update lesson with valid type of courseID', async () => {
-      const update = { courseID: 11 };
+      const update = { courses: 2 };
       const [databaseValue] = await repository.find({ take: 1 });
       const { body } = await request(app.getHttpServer())
         .put(`/lessons/${databaseValue.id}`)

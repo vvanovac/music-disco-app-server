@@ -12,7 +12,8 @@ const dataToCompare = (expected, received) => {
   expect(expected.title).toStrictEqual(received.title);
   expect(expected.subtitle).toStrictEqual(received.subtitle);
   expect(expected.description).toStrictEqual(received.description);
-  expect(expected.imageURL).toStrictEqual(received.imageURL);
+  expect(expected.musicNotes).toStrictEqual(received.musicNotes);
+  expect(expected.octave).toStrictEqual(received.octave);
 };
 
 const GenerateHeader = (generateAuthorization = false, isAdmin = false) => {

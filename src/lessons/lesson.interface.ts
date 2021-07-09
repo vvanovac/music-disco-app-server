@@ -11,6 +11,15 @@ export interface ILesson {
   readonly courses: Courses;
 }
 
+export interface ILessonTest {
+  readonly id?: number;
+  readonly title: string;
+  readonly description: string;
+  readonly listOfTasks: number[];
+  readonly difficulty: DIFFICULTIES_ENUM;
+  readonly courses: number;
+}
+
 export interface ILessonService {
   createLesson(lesson: ILesson): Promise<ILesson>;
   findLessons(): Promise<ILesson[]>;
