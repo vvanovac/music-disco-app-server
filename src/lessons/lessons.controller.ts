@@ -45,6 +45,16 @@ export default class LessonsController {
     }
   }
 
+  @Get('/courseID/:lessonID')
+  async getCourseID(@Param('lessonID') lessonID, @Res() res): Promise<number> {
+    try {
+      const courseID = await this.lessonsService.getCourseID(lessonID);
+      return res.status(HttpStatus.OK).json(courseID);
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+    }
+  }
+
   @Get('/byCourse/:courseID')
   async findByCourse(@Param('courseID') courseID, @Res() res): Promise<ILesson[]> {
     try {

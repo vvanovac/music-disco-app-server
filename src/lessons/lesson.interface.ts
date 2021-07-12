@@ -25,6 +25,7 @@ export interface ILessonService {
   findLessons(): Promise<ILesson[]>;
   findLesson(id: number): Promise<ILesson>;
   findLessonsByCourseID(courseID: number): Promise<ILesson[]>;
+  getCourseID(lessonID: number): Promise<number>;
   updateLesson(id: number, lesson: UpdateLessonDto): Promise<ILesson>;
   deleteLesson(id: number): Promise<ILesson>;
 }

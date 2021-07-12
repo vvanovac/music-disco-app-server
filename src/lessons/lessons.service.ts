@@ -28,6 +28,17 @@ export default class LessonsService implements ILessonService {
     return (await this.lessonsRepository.findOne(id)) || null;
   }
 
+  async getCourseID(lessonID: number): Promise<number> {
+    const course = await createQueryBuilder()
+      .select('courses')
+      .from(Courses, 'courses')
+      .innerJoin(Lessons, 'lessons', 'courses.id = lessons.coursesId')
+      .where('lessons.id = :lessonID', { lessonID })
+      .getOne();
+
+    return course ? course.id : null;
+  }
+
   async findLessonsByCourseID(courseID: number): Promise<ILesson[]> {
     return await createQueryBuilder()
       .select('lessons')
