@@ -11,7 +11,7 @@ export default class UserProgress {
   @ManyToOne(() => Users, (users: Users) => users.id)
   users: Users;
 
-  @ManyToOne(() => TaskLesson, (taskLesson: TaskLesson) => taskLesson.id)
+  @ManyToOne(() => TaskLesson, (taskLesson: TaskLesson) => taskLesson.id, { onDelete: 'CASCADE' })
   taskLesson: TaskLesson;
 
   @Column({ type: 'boolean' })

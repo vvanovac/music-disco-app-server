@@ -9,7 +9,7 @@ export default class TaskLesson {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Lessons, (lessons: Lessons) => lessons.id)
+  @ManyToOne(() => Lessons, (lessons: Lessons) => lessons.id, { onDelete: 'CASCADE' })
   lessons: Lessons;
 
   @ManyToOne(() => Tasks, (tasks: Tasks) => tasks.id)

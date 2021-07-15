@@ -20,6 +20,6 @@ export default class Lessons {
   @Column({ type: 'varchar' })
   difficulty: DIFFICULTIES_ENUM;
 
-  @ManyToOne(() => Courses, (courses: Courses) => courses.id)
+  @ManyToOne(() => Courses, (courses: Courses) => courses.id, { onDelete: 'CASCADE' })
   courses: Courses;
 }
