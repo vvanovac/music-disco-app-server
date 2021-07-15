@@ -45,6 +45,16 @@ export default class CoursesController {
     }
   }
 
+  @Get('/countLessons/:id')
+  async countLessons(@Param('id') id, @Res() res): Promise<number> {
+    try {
+      const count = await this.coursesService.countLessons(id);
+      return res.status(HttpStatus.OK).json(count);
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: error.message });
+    }
+  }
+
   @UseGuards(new JwtAuthGuard(AUTH_GUARD_TYPES_ENUM.ADMIN))
   @Put(':id')
   async update(@Param('id') id, @Body() updateCourseDto: UpdateCourseDto, @Res() res): Promise<ICourse> {

@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { createQueryBuilder, Repository } from 'typeorm';
 
 import Courses from './courses.entity';
 import { UpdateCourseDto } from './courses.dto';
 import { ICourse, ICourseService } from './courses.interface';
+import Lessons from '../lessons/lessons.entity';
 
 @Injectable()
 export default class CoursesService implements ICourseService {
@@ -25,6 +26,15 @@ export default class CoursesService implements ICourseService {
 
   async findCourse(id: number): Promise<ICourse> {
     return (await this.coursesRepository.findOne(id)) || null;
+  }
+
+  async countLessons(id: number): Promise<number> {
+    return await createQueryBuilder()
+      .select('lessons')
+      .from(Lessons, 'lessons')
+      .innerJoin(Courses, 'courses', 'courses.id = lessons.coursesId')
+      .where('lessons.coursesId = :id', { id })
+      .getCount();
   }
 
   async updateCourse(id: number, course: UpdateCourseDto): Promise<ICourse> {
