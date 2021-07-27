@@ -43,6 +43,10 @@ export enum DIFFICULTIES_ENUM {
   MEDIUM = 'medium',
 }
 
+export enum INSTRUMENT_ENUM {
+  PIANO = 'piano',
+}
+
 export const port = +process.env.PORT || 3000;
 export const database: PostgresConnectionOptions = {
   type: 'postgres',

@@ -1,4 +1,4 @@
-import { INestApplication, HttpStatus } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import * as request from 'supertest';
 
@@ -6,6 +6,7 @@ import Courses from '../../src/courses/courses.entity';
 import { ICourse } from '../../src/courses/courses.interface';
 import { GenerateSeed, GenerateToken, RemoveSeed, StartServer, StopServer } from '../helpers/common.functions';
 import { courses } from '../helpers/seed.data';
+import { INSTRUMENT_ENUM } from '../../src/common/constants';
 
 const dataToCompare = (expected, received) => {
   expect(expected.title).toStrictEqual(received.title);
@@ -41,7 +42,10 @@ describe('Courses Module', () => {
       return request(app.getHttpServer())
         .post('/courses')
         .set(GenerateHeader(true, true))
-        .send({ description: 'course 1' })
+        .send({
+          description: 'course 1',
+          instrument: INSTRUMENT_ENUM.PIANO,
+        })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
@@ -57,6 +61,7 @@ describe('Courses Module', () => {
         .send({
           title: 1,
           description: 'course 1',
+          instrument: INSTRUMENT_ENUM.PIANO,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -70,7 +75,10 @@ describe('Courses Module', () => {
       return request(app.getHttpServer())
         .post('/courses')
         .set(GenerateHeader(true, true))
-        .send({ title: 'course 1' })
+        .send({
+          title: 'course 1',
+          instrument: INSTRUMENT_ENUM.PIANO,
+        })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
           statusCode: 400,
@@ -86,6 +94,7 @@ describe('Courses Module', () => {
         .send({
           title: 'course 1',
           description: 1,
+          instrument: INSTRUMENT_ENUM.PIANO,
         })
         .expect(HttpStatus.BAD_REQUEST)
         .expect({
@@ -95,10 +104,61 @@ describe('Courses Module', () => {
         });
     });
 
+    it('should fail creating course with missing instrument', () => {
+      return request(app.getHttpServer())
+        .post('/courses')
+        .set(GenerateHeader(true, true))
+        .send({
+          title: 'course 1',
+          description: 'description 1',
+        })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: ['instrument must be a valid enum value', 'instrument must be a string'],
+          error: 'Bad Request',
+        });
+    });
+
+    it('should fail creating course with invalid type of instrument', () => {
+      return request(app.getHttpServer())
+        .post('/courses')
+        .set(GenerateHeader(true, true))
+        .send({
+          title: 'course 1',
+          description: 'description 1',
+          instrument: 1,
+        })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: ['instrument must be a valid enum value', 'instrument must be a string'],
+          error: 'Bad Request',
+        });
+    });
+
+    it('should fail creating course with invalid enum value of instrument', () => {
+      return request(app.getHttpServer())
+        .post('/courses')
+        .set(GenerateHeader(true, true))
+        .send({
+          title: 'course 1',
+          description: 'description 1',
+          instrument: 'PIANO',
+        })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: ['instrument must be a valid enum value'],
+          error: 'Bad Request',
+        });
+    });
+
     it('should fail creating course for non admin user', async () => {
       const create: ICourse = {
         title: 'course 1',
         description: 'course 1',
+        instrument: INSTRUMENT_ENUM.PIANO,
       };
       await request(app.getHttpServer())
         .post('/courses')
@@ -115,6 +175,7 @@ describe('Courses Module', () => {
       const create: ICourse = {
         title: 'course 1',
         description: 'course 1',
+        instrument: INSTRUMENT_ENUM.PIANO,
       };
       await request(app.getHttpServer())
         .post('/courses')
@@ -131,6 +192,7 @@ describe('Courses Module', () => {
       const create: ICourse = {
         title: 'course 1',
         description: 'course 1',
+        instrument: INSTRUMENT_ENUM.PIANO,
       };
       const { body } = await request(app.getHttpServer())
         .post('/courses')
@@ -209,6 +271,34 @@ describe('Courses Module', () => {
         .expect({
           statusCode: 400,
           message: ['description must be a string'],
+          error: 'Bad Request',
+        });
+    });
+
+    it('should fail updating course with invalid type of instrument', async () => {
+      const [databaseValue] = await repository.find({ take: 1 });
+      await request(app.getHttpServer())
+        .put(`/courses/${databaseValue.id}`)
+        .set(GenerateHeader(true, true))
+        .send({ instrument: 1 })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: ['instrument must be a valid enum value', 'instrument must be a string'],
+          error: 'Bad Request',
+        });
+    });
+
+    it('should fail updating course with invalid enum value of instrument', async () => {
+      const [databaseValue] = await repository.find({ take: 1 });
+      await request(app.getHttpServer())
+        .put(`/courses/${databaseValue.id}`)
+        .set(GenerateHeader(true, true))
+        .send({ instrument: 'PIANO' })
+        .expect(HttpStatus.BAD_REQUEST)
+        .expect({
+          statusCode: 400,
+          message: ['instrument must be a valid enum value'],
           error: 'Bad Request',
         });
     });

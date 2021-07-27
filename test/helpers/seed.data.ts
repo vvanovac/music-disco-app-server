@@ -1,4 +1,4 @@
-import { DIFFICULTIES_ENUM, MUSIC_NOTES_ENUM, OCTAVE_ENUM } from '../../src/common/constants';
+import { DIFFICULTIES_ENUM, INSTRUMENT_ENUM, MUSIC_NOTES_ENUM, OCTAVE_ENUM } from '../../src/common/constants';
 
 export const users = (excludePassword = true) =>
   [
@@ -66,9 +66,11 @@ export const courses = () => [
   {
     title: 'test 1',
     description: 'test 1',
+    instrument: INSTRUMENT_ENUM.PIANO,
   },
   {
     title: 'test 2',
     description: 'test 2',
+    instrument: INSTRUMENT_ENUM.PIANO,
   },
 ];

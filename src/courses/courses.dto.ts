@@ -1,4 +1,5 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { INSTRUMENT_ENUM } from '../common/constants';
 
 export class CreateCourseDto {
   @IsString()
@@ -6,6 +7,10 @@ export class CreateCourseDto {
 
   @IsString()
   description: string;
+
+  @IsString()
+  @IsEnum(INSTRUMENT_ENUM)
+  instrument: INSTRUMENT_ENUM;
 }
 
 export class UpdateCourseDto {
@@ -16,4 +21,9 @@ export class UpdateCourseDto {
   @IsString()
   @IsOptional()
   description: string;
+
+  @IsString()
+  @IsOptional()
+  @IsEnum(INSTRUMENT_ENUM)
+  instrument: INSTRUMENT_ENUM;
 }
